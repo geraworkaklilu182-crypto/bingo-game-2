@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bingo Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        /* Main Container */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header with Logo, Nav, User - ALL IN ONE ROW */
+        .main-header {
+            background: white;
+            border-radius: 20px;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        /* Logo Section */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logo-icon {
+            font-size: 28px;
+        }
+        
+        .logo-text {
+            font-size: 20px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Navigation Menu */
+        .nav-menu {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-link {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+        
+        .nav-link:hover {
+            background: #f0f0f0;
+        }
+        
+        .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        /* User Section */
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .logout-btn {
+            padding: 6px 14px;
+            background: #f56565;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .logout-btn:hover {
+            background: #e53e3e;
+            transform: translateY(-1px);
+        }
+        
+        /* Welcome Banner */
+        .welcome-banner {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .welcome-banner h1 {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .welcome-banner h1 span {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .welcome-banner p {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        /* Stats Grid - 4 Cards in One Row */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        
+        /* Quick Actions - 4 Cards in One Row */
+        .actions-title {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        
+        .action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-3px);
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102,126,234,0.2);
+        }
+        
+        .action-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .action-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+        
+        .action-desc {
+            font-size: 11px;
+            color: #718096;
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 12px 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .notification.success {
+            border-left: 4px solid #48bb78;
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .stats-grid, .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 700px) {
+            .main-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .stats-grid, .actions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header: Logo | Navigation | User - ALL IN ONE ROW -->
+        <div class="main-header">
+            <!-- Logo Left -->
+            <div class="logo">
+                <span class="logo-icon">🎯</span>
+                <span class="logo-text">Bingo Game</span>
+            </div>
+            
+            <!-- Navigation Center -->
+            <div class="nav-menu">
+                <button class="nav-link active" onclick="window.location.href='/dashboard.html'">
+                    📊 Dashboard
+                </button>
+                <button class="nav-link" onclick="window.location.href='/game.html'">
+                    🎮 Play Game
+                </button>
+                <button class="nav-link" onclick="window.location.href='/game-multiplayer.html'">
+                    👥 Multiplayer
+                </button>
+                <button class="nav-link" onclick="window.location.href='/history.html'">
+                    📜 History
+                </button>
+                <button class="nav-link" onclick="window.location.href='/profile.html'">
+                    👤 Profile
+                </button>
+                <button id="adminNav" class="nav-link" style="display:none;" onclick="window.location.href='/admin.html'">
+                    👑 Admin
+                </button>
+                <button class="nav-link" onclick="window.location.href='/wallet.html'">
+                    💰 Wallet
+                </button>
+                
+            </div>
+            
+            <!-- User Right -->
+            <div class="user-section">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+        
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <h1>Welcome back, <span id="username">Player</span>!</h1>
+            <p>Ready to play Bingo? Check your stats and start a new game!</p>
+        </div>
+        
+        <!-- Stats Cards - 4 in a row -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalScore">0</div>
+                <div class="stat-label">TOTAL SCORE</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="gamesPlayed">0</div>
+                <div class="stat-label">GAMES PLAYED</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="gamesWon">0</div>
+                <div class="stat-label">GAMES WON</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="winRate">0%</div>
+                <div class="stat-label">WIN RATE</div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions - 4 in a row -->
+        <div class="actions-title">
+            <span>⚡</span> Quick Actions
+        </div>
+        <div class="actions-grid">
+            <div class="action-card" onclick="startNewGame()">
+                <div class="action-icon">🎲</div>
+                <div class="action-title">Single Player</div>
+                <div class="action-desc">Play against computer</div>
+            </div>
+            <div class="action-card" onclick="startMultiplayer()">
+                <div class="action-icon">👥</div>
+                <div class="action-title">Multiplayer</div>
+                <div class="action-desc">Play with friends</div>
+            </div>
+            <div class="action-card" onclick="viewHistory()">
+                <div class="action-icon">📜</div>
+                <div class="action-title">Game History</div>
+                <div class="action-desc">View past games</div>
+            </div>
+            <div class="action-card" onclick="viewProfile()">
+                <div class="action-icon">⚙️</div>
+                <div class="action-title">Settings</div>
+                <div class="action-desc">Manage profile</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification"></div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notificationDiv = document.getElementById('notification');
+            notificationDiv.innerHTML = `
+                <div class="notification ${type}">
+                    <span>${type === 'success' ? '✅' : 'ℹ️'}</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            setTimeout(() => {
+                notificationDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        async function loadUserData() {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+                
+                const user = await response.json();
+                
+                document.getElementById('username').textContent = user.username;
+                document.getElementById('totalScore').textContent = user.total_score || 0;
+                document.getElementById('gamesPlayed').textContent = user.games_played || 0;
+                document.getElementById('gamesWon').textContent = user.games_won || 0;
+                
+                const winRate = user.games_played > 0 
+                    ? ((user.games_won / user.games_played) * 100).toFixed(1)
+                    : 0;
+                document.getElementById('winRate').textContent = `${winRate}%`;
+                
+                const avatar = document.getElementById('userAvatar');
+                avatar.textContent = user.username.charAt(0).toUpperCase();
+                
+                if (user.role === 'admin') {
+                    document.getElementById('adminNav').style.display = 'flex';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function startNewGame() {
+            window.location.href = '/game.html';
+        }
+        
+        function startMultiplayer() {
+            window.location.href = '/game-multiplayer.html';
+        }
+        
+        function viewHistory() {
+            window.location.href = '/history.html';
+        }
+        
+        function viewProfile() {
+            window.location.href = '/profile.html';
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+        
+        loadUserData();
+    </script>
+</body>
+</html>

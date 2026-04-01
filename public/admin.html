@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #f7fafc;
+            font-weight: bold;
+        }
+        
+        .role-select {
+            padding: 5px;
+            border-radius: 5px;
+        }
+        
+        .delete-btn {
+            background: #f56565;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .delete-btn:hover {
+            background: #e53e3e;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 1200px;">
+        <h1>👑 Admin Panel</h1>
+        
+        <div class="admin-tabs">
+            <button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="showTab('users')">👥 Users</button>
+            <button class="tab-btn" onclick="showTab('games')">🎮 Games</button>
+            <!-- Add this to the admin-tabs section -->
+<button class="tab-btn" onclick="showTab('transactions')">💰 Transactions</button>
+
+<!-- Add this new tab content -->
+<div id="transactions" class="tab-content">
+    <h3>All Transactions</h3>
+    <table id="transactionsTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+        </div>
+        
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid" id="statsGrid"></div>
+            <h3>Recent Games</h3>
+            <table id="recentGames">
+                <thead>
+                    <tr><th>Player</th><th>Score</th><th>Result</th><th>Date</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <!-- Add this inside the Dashboard tab, after the stats grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value" id="totalCommission">0</div>
+        <div class="stat-label">Total Commission</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">💸</div>
+        <div class="stat-value" id="totalDeposits">0</div>
+        <div class="stat-label">Total Deposits</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🏦</div>
+        <div class="stat-value" id="totalWithdrawals">0</div>
+        <div class="stat-label">Total Withdrawals</div>
+    </div>
+</div>
+        
+        <div id="users" class="tab-content">
+            <table id="usersTable">
+                <thead>
+                    <tr><th>ID</th><th>Username</th><th>Email</th><th>Score</th><th>Games</th><th>Role</th><th>Actions</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <div id="games" class="tab-content">
+            <table id="gamesTable">
+                <thead>
+                    <tr><th>ID</th><th>Player</th><th>Score</th><th>Won</th><th>Date</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <button onclick="goToDashboard()" class="btn-secondary" style="margin-top: 20px;">← Back to Dashboard</button>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = '/index.html';
+        }
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        async function loadAdminData() {
+            try {
+                // Load users
+                const usersRes = await fetch(`${API_URL}/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (usersRes.status === 403) {
+                    alert('Admin access required');
+                    window.location.href = '/dashboard.html';
+                    return;
+                }
+                
+                const users = await usersRes.json();
+                
+                // Load games
+                const gamesRes = await fetch(`${API_URL}/admin/games`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const games = await gamesRes.json();
+                
+                // Update stats
+                const totalUsers = users.length;
+                const totalGames = games.length;
+                const totalScore = games.reduce((sum, g) => sum + (g.score || 0), 0);
+                
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card"><h3>Total Users</h3><div class="number">${totalUsers}</div></div>
+                    <div class="stat-card"><h3>Total Games</h3><div class="number">${totalGames}</div></div>
+                    <div class="stat-card"><h3>Total Score</h3><div class="number">${totalScore}</div></div>
+                `;
+                
+                // Users table
+                const usersTable = document.getElementById('usersTable').querySelector('tbody');
+                usersTable.innerHTML = users.map(user => `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td>${user.total_score || 0}</td>
+                        <td>${user.games_played || 0}</td>
+                        <td>
+                            <select class="role-select" data-userid="${user.id}" onchange="updateRole(${user.id}, this.value)">
+                                <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                                <option value="worker" ${user.role === 'worker' ? 'selected' : ''}>Worker</option>
+                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </td>
+                        <td><button class="delete-btn" onclick="deleteUser(${user.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+                
+                // Games table
+                const gamesTable = document.getElementById('gamesTable').querySelector('tbody');
+                gamesTable.innerHTML = games.map(game => `
+                    <tr>
+                        <td>${game.id}</td>
+                        <td>${game.username}</td>
+                        <td>${game.score || 0}</td>
+                        <td>${game.won ? '✅ Win' : '❌ Loss'}</td>
+                        <td>${new Date(game.created_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+                
+                // Recent games for dashboard
+                const recentGames = games.slice(0, 10);
+                const recentTable = document.querySelector('#recentGames tbody');
+                recentTable.innerHTML = recentGames.map(game => `
+                    <tr>
+                        <td>${game.username}</td>
+                        <td>${game.score || 0}</td>
+                        <td>${game.won ? '🎉 Win' : '❌ Loss'}</td>
+                        <td>${new Date(game.created_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading admin data:', error);
+            }
+        }
+        
+        async function updateRole(userId, role) {
+            try {
+                const response = await fetch(`${API_URL}/admin/users/${userId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ role })
+                });
+                
+                if (response.ok) {
+                    alert('Role updated successfully');
+                } else {
+                    alert('Failed to update role');
+                    loadAdminData();
+                }
+            } catch (error) {
+                console.error('Error updating role:', error);
+            }
+        }
+        
+        async function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user? This cannot be undone.')) {
+                try {
+                    const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        alert('User deleted');
+                        loadAdminData();
+                    } else {
+                        alert('Failed to delete user');
+                    }
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                }
+            }
+        }
+        async function loadTransactions() {
+    try {
+        const response = await fetch(`${API_URL}/admin/transactions`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const transactions = await response.json();
+        
+        const tbody = document.querySelector('#transactionsTable tbody');
+        tbody.innerHTML = transactions.map(t => `
+            <tr>
+                <td>${t.id}</td>
+                <td>${t.username}</td>
+                <td>${t.type.replace('_', ' ').toUpperCase()}</td>
+                <td style="color: ${t.type === 'deposit' || t.type === 'game_win' ? 'green' : t.type === 'withdraw' || t.type === 'game_loss' ? 'red' : 'orange'}">
+                    ${t.type === 'deposit' || t.type === 'game_win' ? '+' : '-'} ${t.amount}
+                </td>
+                <td>${t.description || '-'}</td>
+                <td>${new Date(t.created_at).toLocaleString()}</td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error loading transactions:', error);
+    }
+}
+        
+        function goToDashboard() {
+            window.location.href = '/dashboard.html';
+        }
+        
+        loadAdminData();
+    </script>
+</body>
+</html>

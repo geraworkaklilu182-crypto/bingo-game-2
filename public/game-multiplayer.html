@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Bingo</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .multiplayer-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .player-card {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .player-card h3 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .player-card .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .player-card .cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .player-card .cell.marked {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .waiting-message {
+            text-align: center;
+            padding: 40px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            margin: 20px;
+        }
+        
+        .game-code {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+        }
+        
+        .players-list {
+            text-align: center;
+            margin: 20px;
+        }
+        
+        .player-name {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Multiplayer Bingo</h1>
+        
+        <div id="gameSetup">
+            <div class="game-actions">
+                <button onclick="createGame()" class="btn-primary">🎲 Create New Game</button>
+                <button onclick="showJoinForm()" class="btn-secondary">🔗 Join Game</button>
+                <button onclick="goToDashboard()" class="btn-secondary">← Back</button>
+            </div>
+            
+            <div id="joinForm" style="display:none; margin-top: 20px;">
+                <input type="text" id="gameCode" placeholder="Enter Game Code" style="width: 200px;">
+                <button onclick="joinGame()" class="btn-primary">Join</button>
+            </div>
+        </div>
+        
+        <div id="gameArea" style="display:none;">
+            <div class="game-code" id="gameCodeDisplay"></div>
+            <div class="players-list" id="playersList"></div>
+            <div id="multiplayerContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        let currentGame = null;
+        let playerCard = null;
+        let markedNumbers = [];
+        let calledNumbers = [];
+        
+        function showJoinForm() {
+            document.getElementById('joinForm').style.display = 'block';
+        }
+        
+        function createGame() {
+            // Generate random game code
+            const gameCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            currentGame = { code: gameCode, players: [getCurrentUser()], status: 'waiting' };
+            
+            document.getElementById('gameSetup').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            document.getElementById('gameCodeDisplay').textContent = `Game Code: ${gameCode}`;
+            
+            updatePlayersList();
+            startGame();
+        }
+        
+        function joinGame() {
+            const gameCode = document.getElementById('gameCode').value.toUpperCase();
+            // In a real implementation, you'd check if game exists
+            currentGame = { code: gameCode, players: [getCurrentUser()], status: 'waiting' };
+            
+            document.getElementById('gameSetup').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            document.getElementById('gameCodeDisplay').textContent = `Game Code: ${gameCode}`;
+            
+            updatePlayersList();
+            startGame();
+        }
+        
+        function getCurrentUser() {
+            return localStorage.getItem('username') || 'Player';
+        }
+        
+        function updatePlayersList() {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = `
+                <strong>Players:</strong>
+                ${currentGame.players.map(p => `<span class="player-name">${p}</span>`).join('')}
+            `;
+        }
+        
+        function generateBingoCard() {
+            const card = [];
+            const ranges = [
+                { min: 1, max: 15 }, { min: 16, max: 30 },
+                { min: 31, max: 45 }, { min: 46, max: 60 },
+                { min: 61, max: 75 }
+            ];
+            
+            for (let col = 0; col < 5; col++) {
+                const columnNumbers = [];
+                while (columnNumbers.length < 5) {
+                    const num = Math.floor(Math.random() * (ranges[col].max - ranges[col].min + 1)) + ranges[col].min;
+                    if (!columnNumbers.includes(num)) {
+                        columnNumbers.push(num);
+                    }
+                }
+                columnNumbers.sort((a, b) => a - b);
+                for (let row = 0; row < 5; row++) {
+                    if (!card[row]) card[row] = [];
+                    card[row][col] = columnNumbers[row];
+                }
+            }
+            card[2][2] = "FREE";
+            return card;
+        }
+        
+        function renderMultiplayerCard() {
+            const container = document.getElementById('multiplayerContent');
+            if (!playerCard) {
+                playerCard = generateBingoCard();
+            }
+            
+            let html = '<div class="player-card"><h3>Your Card</h3><div class="bingo-grid">';
+            
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const num = playerCard[row][col];
+                    const isMarked = num === "FREE" || markedNumbers.includes(num);
+                    html += `<div class="cell ${isMarked ? 'marked' : ''}">${num}</div>`;
+                }
+            }
+            
+            html += '</div></div>';
+            
+            // Add called numbers section
+            html += `
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="callNumberMultiplayer()" class="btn-primary">🎲 Call Number</button>
+                    <div style="margin-top: 20px;">
+                        <strong>Called Numbers:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;">
+                            ${calledNumbers.map(n => `<span style="background: #cbd5e0; padding: 5px 10px; border-radius: 5px;">${n}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        function callNumberMultiplayer() {
+            const availableNumbers = [];
+            for (let i = 1; i <= 75; i++) {
+                if (!calledNumbers.includes(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+            
+            if (availableNumbers.length === 0) {
+                alert('Game Over! All numbers called!');
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+            const number = availableNumbers[randomIndex];
+            calledNumbers.push(number);
+            
+            // Check if number is on player's card
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    if (playerCard[row][col] === number && !markedNumbers.includes(number)) {
+                        markedNumbers.push(number);
+                        renderMultiplayerCard();
+                        checkWinMultiplayer();
+                        return;
+                    }
+                }
+            }
+            
+            renderMultiplayerCard();
+        }
+        
+        function checkWinMultiplayer() {
+            // Check rows
+            for (let row = 0; row < 5; row++) {
+                let rowComplete = true;
+                for (let col = 0; col < 5; col++) {
+                    const num = playerCard[row][col];
+                    if (num !== "FREE" && !markedNumbers.includes(num)) {
+                        rowComplete = false;
+                        break;
+                    }
+                }
+                if (rowComplete) {
+                    alert('🎉 BINGO! You Win! 🎉');
+                    endGame();
+                    return;
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 5; col++) {
+                let colComplete = true;
+                for (let row = 0; row < 5; row++) {
+                    const num = playerCard[row][col];
+                    if (num !== "FREE" && !markedNumbers.includes(num)) {
+                        colComplete = false;
+                        break;
+                    }
+                }
+                if (colComplete) {
+                    alert('🎉 BINGO! You Win! 🎉');
+                    endGame();
+                    return;
+                }
+            }
+        }
+        
+        function endGame() {
+            document.getElementById('multiplayerContent').innerHTML += '<div style="text-align:center; margin-top:20px;"><button onclick="playAgain()" class="btn-primary">Play Again</button></div>';
+        }
+        
+        function playAgain() {
+            playerCard = null;
+            markedNumbers = [];
+            calledNumbers = [];
+            startGame();
+        }
+        
+        function startGame() {
+            playerCard = generateBingoCard();
+            renderMultiplayerCard();
+        }
+        
+        function goToDashboard() {
+            window.location.href = '/dashboard.html';
+        }
+        
+        // Store username when logging in
+        async function loadUsername() {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const user = await response.json();
+                localStorage.setItem('username', user.username);
+            } catch(e) {}
+        }
+        
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = '/index.html';
+        }
+        
+        loadUsername();
+    </script>
+</body>
+</html>

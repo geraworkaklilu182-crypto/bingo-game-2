@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Bingo</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .bingo-card {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 500px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .bingo-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .bingo-cell.marked {
+            background: #48bb78;
+            color: white;
+            border-color: #38a169;
+            text-decoration: line-through;
+        }
+        
+        .bingo-cell:hover:not(.marked) {
+            background: #e2e8f0;
+            transform: scale(1.05);
+        }
+        
+        .game-controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .number-called {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        
+        .called-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .called-number {
+            background: #cbd5e0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .win-message {
+            background: #48bb78;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        
+        .letters {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .letter {
+            font-size: 24px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Bingo Game</h1>
+        <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: white; border-radius: 10px; display: inline-block; width: auto; margin: 0 auto 20px auto;">
+    <span style="font-size: 18px;">💰 Balance: </span>
+    <span id="balanceDisplay" style="font-size: 24px; font-weight: bold; color: #48bb78;">0</span>
+    <span style="font-size: 18px;"> coins</span>
+</div>
+        
+        <div class="letters">
+            <div class="letter">B</div>
+            <div class="letter">I</div>
+            <div class="letter">N</div>
+            <div class="letter">G</div>
+            <div class="letter">O</div>
+        </div>
+        
+        <div id="bingoCard" class="bingo-card"></div>
+        
+        <div class="game-controls">
+            <button onclick="callNumber()" class="btn-primary" id="callBtn">🎲 Call Random Number</button>
+            <button onclick="resetGame()" class="btn-secondary">🔄 New Game</button>
+            <button onclick="goToDashboard()" class="btn-secondary">📊 Dashboard</button>
+        </div>
+        
+        <div id="numberDisplay" class="number-called"></div>
+        <div id="calledNumbers" class="called-numbers"></div>
+        <div id="winMessage"></div>
+    </div>
+    
+    <script>
+        let bingoCard = [];
+        let markedNumbers = [];
+        let calledNumbersList = [];
+        let gameActive = true;
+        
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('token');
+        
+        // Check if user is logged in
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        // Check user balance
+async function checkBalance() {
+    try {
+        const response = await fetch(`${API_URL}/wallet/balance`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        document.getElementById('balanceDisplay').textContent = data.balance;
+        
+        if (data.balance < 10) {
+            alert('⚠️ Insufficient balance! You need at least 10 coins to play.\n\nGo to Wallet to deposit more coins.');
+            window.location.href = '/wallet.html';
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error checking balance:', error);
+        return false;
+    }
+}
+        
+        // Generate random Bingo card (5x5)
+        function generateBingoCard() {
+            const card = [];
+            
+            // B: 1-15, I: 16-30, N: 31-45, G: 46-60, O: 61-75
+            const ranges = [
+                { min: 1, max: 15 },   // B
+                { min: 16, max: 30 },  // I
+                { min: 31, max: 45 },  // N
+                { min: 46, max: 60 },  // G
+                { min: 61, max: 75 }   // O
+            ];
+            
+            for (let col = 0; col < 5; col++) {
+                const columnNumbers = [];
+                while (columnNumbers.length < 5) {
+                    const num = Math.floor(Math.random() * (ranges[col].max - ranges[col].min + 1)) + ranges[col].min;
+                    if (!columnNumbers.includes(num)) {
+                        columnNumbers.push(num);
+                    }
+                }
+                columnNumbers.sort((a, b) => a - b);
+                for (let row = 0; row < 5; row++) {
+                    if (!card[row]) card[row] = [];
+                    card[row][col] = columnNumbers[row];
+                }
+            }
+            
+            // Center is FREE space
+            card[2][2] = "FREE";
+            
+            return card;
+        }
+        
+        // Render Bingo card
+        function renderCard() {
+            const container = document.getElementById('bingoCard');
+            container.innerHTML = '';
+            
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'bingo-cell';
+                    const number = bingoCard[row][col];
+                    cell.textContent = number;
+                    
+                    const isMarked = number === "FREE" || markedNumbers.includes(number);
+                    if (isMarked) {
+                        cell.classList.add('marked');
+                    }
+                    
+                    if (number !== "FREE" && gameActive) {
+                        cell.onclick = () => markNumber(number);
+                    }
+                    
+                    container.appendChild(cell);
+                }
+            }
+        }
+        
+        // Mark a number
+        function markNumber(number) {
+            if (!gameActive) return;
+            
+            if (!markedNumbers.includes(number)) {
+                markedNumbers.push(number);
+                renderCard();
+                checkWin();
+            }
+        }
+        
+        // Call random number
+        function callNumber() {
+            if (!gameActive) return;
+            
+            const availableNumbers = [];
+            for (let i = 1; i <= 75; i++) {
+                if (!calledNumbersList.includes(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+            
+            if (availableNumbers.length === 0) {
+                document.getElementById('winMessage').innerHTML = '<div class="win-message">Game Over! No more numbers!</div>';
+                gameActive = false;
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+            const number = availableNumbers[randomIndex];
+            calledNumbersList.push(number);
+            
+            document.getElementById('numberDisplay').textContent = `🎯 ${number}`;
+            
+            // Update called numbers display
+            const calledContainer = document.getElementById('calledNumbers');
+            calledContainer.innerHTML = calledNumbersList.map(n => `<span class="called-number">${n}</span>`).join('');
+            
+            // Auto-mark if number is on card
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    if (bingoCard[row][col] === number) {
+                        markNumber(number);
+                        return;
+                    }
+                }
+            }
+        }
+        
+        // Check for Bingo
+        function checkWin() {
+            // Check rows
+            for (let row = 0; row < 5; row++) {
+                let rowComplete = true;
+                for (let col = 0; col < 5; col++) {
+                    const num = bingoCard[row][col];
+                    if (num !== "FREE" && !markedNumbers.includes(num)) {
+                        rowComplete = false;
+                        break;
+                    }
+                }
+                if (rowComplete) {
+                    winGame();
+                    return;
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 5; col++) {
+                let colComplete = true;
+                for (let row = 0; row < 5; row++) {
+                    const num = bingoCard[row][col];
+                    if (num !== "FREE" && !markedNumbers.includes(num)) {
+                        colComplete = false;
+                        break;
+                    }
+                }
+                if (colComplete) {
+                    winGame();
+                    return;
+                }
+            }
+            
+            // Check diagonals
+            let diag1Complete = true;
+            let diag2Complete = true;
+            for (let i = 0; i < 5; i++) {
+                const num1 = bingoCard[i][i];
+                if (num1 !== "FREE" && !markedNumbers.includes(num1)) {
+                    diag1Complete = false;
+                }
+                const num2 = bingoCard[i][4 - i];
+                if (num2 !== "FREE" && !markedNumbers.includes(num2)) {
+                    diag2Complete = false;
+                }
+            }
+            if (diag1Complete || diag2Complete) {
+                winGame();
+                return;
+            }
+        }
+        
+        // Win game
+        async function winGame() {
+            if (!gameActive) return;
+            gameActive = false;
+            
+            document.getElementById('winMessage').innerHTML = '<div class="win-message">🎉 BINGO! You Win! 🎉</div>';
+            document.getElementById('callBtn').disabled = true;
+            
+            // Save game result to server
+            try {
+                await fetch(`${API_URL}/game/save`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        card_numbers: bingoCard,
+                        marked_numbers: markedNumbers,
+                        score: 100,
+                        won: true
+                    })
+                });
+
+                const data = await response.json();
+        
+        // Show win message with balance update
+        if (data.message) {
+            const winDiv = document.getElementById('winMessage');
+            winDiv.innerHTML = `<div class="win-message">${data.message}
+
+    </div>`;
+
+        }
+        
+        // Update balance display
+        if (data.balance !== undefined) {
+            document.getElementById('balanceDisplay').textContent = data.balance;
+        }
+
+              } catch (error) {
+                console.error('Error saving game:', error);
+                document.getElementById('winMessage').innerHTML = '<div class="win-message">🎉 BINGO! You Win! 🎉</div>';
+            }
+        }
+        
+        // Reset game
+         async function resetGame() {
+            // Check balance before starting new game
+            const hasBalance = await checkBalance();
+            if (!hasBalance) return;
+            
+            bingoCard = generateBingoCard();
+            markedNumbers = [];
+            calledNumbersList = [];
+            gameActive = true;
+            document.getElementById('numberDisplay').textContent = '';
+            document.getElementById('calledNumbers').innerHTML = '';
+            document.getElementById('winMessage').innerHTML = '';
+            document.getElementById('callBtn').disabled = false;
+            renderCard();
+        }
+
+         function goToWallet() {
+            window.location.href = '/wallet.html';
+        }
+        
+        
+        function goToDashboard() {
+            window.location.href = '/dashboard.html';
+        }
+        
+        // Initialize game
+        resetGame();
+    </script>
+</body>
+</html>

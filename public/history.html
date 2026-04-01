@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game History</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📜 Game History</h1>
+        
+        <div id="historyList"></div>
+        
+        <button onclick="goToDashboard()" class="btn-secondary">← Back to Dashboard</button>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = '/index.html';
+        }
+        
+        async function loadHistory() {
+            try {
+                const response = await fetch(`${API_URL}/game/history`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const games = await response.json();
+                const container = document.getElementById('historyList');
+                
+                if (games.length === 0) {
+                    container.innerHTML = '<p>No games played yet. Start playing!</p>';
+                    return;
+                }
+                
+                container.innerHTML = games.map(game => `
+                    <div class="history-item">
+                        <p><strong>Date:</strong> ${new Date(game.created_at).toLocaleString()}</p>
+                        <p><strong>Result:</strong> ${game.won ? '🎉 WIN!' : '❌ Loss'}</p>
+                        <p><strong>Score:</strong> ${game.score} points</p>
+                        <hr>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading history:', error);
+                document.getElementById('historyList').innerHTML = '<p>Error loading history</p>';
+            }
+        }
+        
+        function goToDashboard() {
+            window.location.href = '/dashboard.html';
+        }
+        
+        loadHistory();
+    </script>
+</body>
+</html>

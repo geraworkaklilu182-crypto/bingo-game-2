@@ -1,0 +1,215 @@
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const { getDB } = require('../config/database');
+
+const router = express.Router();
+
+// Admin middleware
+const verifyAdmin = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const db = getDB();
+    
+    const user = await db.get('SELECT role FROM users WHERE id = ?', [decoded.id]);
+    
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    
+    req.userId = decoded.id;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+// Get all users
+router.get('/users', verifyAdmin, async (req, res) => {
+  try {
+    const db = getDB();
+    const users = await db.all(
+      'SELECT id, username, email, total_score, games_played, games_won, role, created_at FROM users ORDER BY id'
+    );
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update user role
+router.put('/users/:id/role', verifyAdmin, async (req, res) => {
+  try {
+    const { role } = req.body;
+    const userId = req.params.id;
+    const db = getDB();
+    
+    if (!['user', 'admin', 'worker'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+    
+    await db.run('UPDATE users SET role = ? WHERE id = ?', [role, userId]);
+    res.json({ message: 'User role updated successfully' });
+  } catch (error) {
+    console.error('Error updating role:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete user
+router.delete('/users/:id', verifyAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const db = getDB();
+    
+    await db.run('DELETE FROM games WHERE user_id = ?', [userId]);
+    await db.run('DELETE FROM users WHERE id = ?', [userId]);
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all games
+router.get('/games', verifyAdmin, async (req, res) => {
+  try {
+    const db = getDB();
+    const games = await db.all(
+      `SELECT g.*, u.username 
+       FROM games g 
+       JOIN users u ON g.user_id = u.id 
+       ORDER BY g.created_at DESC 
+       LIMIT 50`
+    );
+    res.json(games);
+  } catch (error) {
+    console.error('Error fetching games:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+// Add these routes to your existing admin.js
+
+// Get wallet statistics
+router.get('/wallet-stats', verifyAdmin, async (req, res) => {
+  try {
+    const db = getDB();
+    
+    // Get total commission
+    const commission = await db.get(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = "commission"'
+    );
+    
+    // Get total deposits
+    const deposits = await db.get(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = "deposit"'
+    );
+    
+    // Get total withdrawals
+    const withdrawals = await db.get(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = "withdraw"'
+    );
+    
+    res.json({
+      totalCommission: commission?.total || 0,
+      totalDeposits: deposits?.total || 0,
+      totalWithdrawals: withdrawals?.total || 0
+    });
+    
+  } catch (error) {
+    console.error('Error getting wallet stats:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all transactions (for admin)
+router.get('/transactions', verifyAdmin, async (req, res) => {
+  try {
+    const db = getDB();
+    const transactions = await db.all(
+      `SELECT t.*, u.username 
+       FROM transactions t 
+       JOIN users u ON t.user_id = u.id 
+       ORDER BY t.created_at DESC 
+       LIMIT 100`
+    );
+    res.json(transactions);
+  } catch (error) {
+    console.error('Error getting transactions:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get user wallet balance (admin can view any user)
+router.get('/user-wallet/:userId', verifyAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const db = getDB();
+    
+    const wallet = await db.get(
+      'SELECT balance FROM wallet WHERE user_id = ?',
+      [userId]
+    );
+    
+    const transactions = await db.all(
+      `SELECT type, amount, description, created_at 
+       FROM transactions 
+       WHERE user_id = ? 
+       ORDER BY created_at DESC 
+       LIMIT 20`,
+      [userId]
+    );
+    
+    res.json({
+      balance: wallet?.balance || 0,
+      transactions
+    });
+    
+  } catch (error) {
+    console.error('Error getting user wallet:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Admin can adjust user balance (add or remove coins)
+router.post('/adjust-balance', verifyAdmin, async (req, res) => {
+  try {
+    const { userId, amount, reason } = req.body;
+    const db = getDB();
+    
+    if (!userId || !amount || amount === 0) {
+      return res.status(400).json({ message: 'Invalid request' });
+    }
+    
+    // Update balance
+    await db.run(
+      'UPDATE wallet SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?',
+      [amount, userId]
+    );
+    
+    // Record transaction
+    const type = amount > 0 ? 'deposit' : 'withdraw';
+    await db.run(
+      `INSERT INTO transactions (user_id, type, amount, description) 
+       VALUES (?, ?, ?, ?)`,
+      [userId, type, Math.abs(amount), `Admin adjustment: ${reason}`]
+    );
+    
+    res.json({ 
+      message: `Successfully ${amount > 0 ? 'added' : 'removed'} ${Math.abs(amount)} coins`,
+      amount: amount
+    });
+    
+  } catch (error) {
+    console.error('Error adjusting balance:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+module.exports = router;
