@@ -29,6 +29,8 @@ const verifyAdmin = async (req, res, next) => {
   }
 };
 
+// ============ USER MANAGEMENT ============
+
 // Get all users
 router.get('/users', verifyAdmin, async (req, res) => {
   try {
@@ -77,6 +79,8 @@ router.delete('/users/:id', verifyAdmin, async (req, res) => {
   }
 });
 
+// ============ GAME MANAGEMENT ============
+
 // Get all games
 router.get('/games', verifyAdmin, async (req, res) => {
   try {
@@ -94,7 +98,8 @@ router.get('/games', verifyAdmin, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-// Add these routes to your existing admin.js
+
+// ============ WALLET & TRANSACTIONS ============
 
 // Get wallet statistics
 router.get('/wallet-stats', verifyAdmin, async (req, res) => {
@@ -210,6 +215,80 @@ router.post('/adjust-balance', verifyAdmin, async (req, res) => {
     console.error('Error adjusting balance:', error);
     res.status(500).json({ message: 'Server error' });
   }
+});
+
+// ============ TIMER SETTINGS ============
+
+// Get timer settings (anyone can view)
+router.get('/timer-settings', async (req, res) => {
+    try {
+        const db = getDB();
+        const setting = await db.get('SELECT timer_seconds FROM settings WHERE id = 1');
+        res.json({ timerSeconds: setting?.timer_seconds || 45 });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Update timer settings (ADMIN ONLY)
+router.put('/timer-settings', verifyAdmin, async (req, res) => {
+    try {
+        const { timerSeconds } = req.body;
+        const db = getDB();
+        await db.run('UPDATE settings SET timer_seconds = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1', [timerSeconds]);
+        res.json({ message: 'Timer settings updated', timerSeconds });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// ============ SESSION & CARD MANAGEMENT ============
+
+// Get taken cards for current session (ADMIN ONLY - FIXED)
+router.get('/taken-cards/:sessionId', verifyAdmin, async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const db = getDB();
+        const cards = await db.all('SELECT card_number, player_name FROM session_cards WHERE session_id = ?', [sessionId]);
+        res.json({ takenCards: cards.map(c => c.card_number) });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Take a card (ADMIN ONLY - FIXED)
+router.post('/take-card', verifyAdmin, async (req, res) => {
+    try {
+        const { sessionId, cardNumber, playerName } = req.body;
+        const db = getDB();
+        
+        // Check if card is already taken
+        const existing = await db.get('SELECT * FROM session_cards WHERE session_id = ? AND card_number = ?', [sessionId, cardNumber]);
+        if (existing) {
+            return res.status(400).json({ message: 'Card already taken!' });
+        }
+        
+        await db.run('INSERT INTO session_cards (session_id, card_number, player_name) VALUES (?, ?, ?)', 
+            [sessionId, cardNumber, playerName]);
+        
+        res.json({ success: true, message: 'Card taken successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+// Winner settings
+router.get('/winner-settings', verifyAdmin, async (req, res) => {
+    const db = getDB();
+    const setting = await db.get('SELECT single_winner, multiple_winners_threshold FROM settings WHERE id = 1');
+    res.json(setting || { single_winner: 1, multiple_winners_threshold: 50 });
+});
+
+router.put('/winner-settings', verifyAdmin, async (req, res) => {
+    const { single_winner, multiple_winners_threshold } = req.body;
+    const db = getDB();
+    await db.run('UPDATE settings SET single_winner = ?, multiple_winners_threshold = ? WHERE id = 1', 
+        [single_winner, multiple_winners_threshold]);
+    res.json({ success: true });
 });
 
 module.exports = router;

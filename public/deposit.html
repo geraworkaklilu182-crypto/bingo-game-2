@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit - DIL BINGO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .telebirr-info {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .telebirr-info h2 {
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+
+        .telebirr-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1a1a2e;
+            letter-spacing: 2px;
+            margin: 10px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,215,0,0.3);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+
+        .file-input {
+            padding: 10px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: none;
+            border-radius: 10px;
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,215,0,0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(72,187,120,0.3);
+            color: #48bb78;
+            display: block;
+            border: 1px solid #48bb78;
+        }
+
+        .message.error {
+            background: rgba(220,53,69,0.3);
+            color: #f56565;
+            display: block;
+            border: 1px solid #f56565;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .back-btn a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Deposit Coins</h1>
+
+        <div class="telebirr-info">
+            <h2>📱 Send Money via TeleBirr</h2>
+            <div class="telebirr-number" id="telebirrNumber">Loading...</div>
+            <p>Send the exact amount to this number</p>
+            <p style="font-size: 12px; margin-top: 10px;">After sending, take a screenshot of the confirmation</p>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <form id="depositForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>💰 Amount (birr)</label>
+                <input type="number" id="amount" min="10" max="10000" required placeholder="Minimum 10 birr">
+                <div class="info-text">Min: 10 birr | Max: 10,000 birr</div>
+            </div>
+
+            <div class="form-group">
+                <label>📱 Your TeleBirr Number</label>
+                <input type="tel" id="telebirrNumberInput" required placeholder="09XXXXXXXX">
+                <div class="info-text">We'll send your winnings to this number</div>
+            </div>
+
+            <div class="form-group">
+                <label>📷 Upload Screenshot</label>
+                <input type="file" id="screenshot" accept="image/*" required class="file-input">
+                <div class="info-text">Take a screenshot of your TeleBirr payment confirmation</div>
+            </div>
+
+            <button type="submit" class="btn">📤 Submit Deposit Request</button>
+        </form>
+
+        <div class="back-btn">
+            <a href="/wallet.html">← Back to Wallet</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        // Load TeleBirr number
+        async function loadTeleBirrNumber() {
+            try {
+                const response = await fetch(`${API_URL}/payment/telebirr-number`);
+                const data = await response.json();
+                document.getElementById('telebirrNumber').textContent = data.number;
+            } catch (error) {
+                console.error('Error loading TeleBirr number:', error);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('depositForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const amount = document.getElementById('amount').value;
+            const telebirr_number = document.getElementById('telebirrNumberInput').value;
+            const screenshot = document.getElementById('screenshot').files[0];
+            
+            if (!amount || amount < 10) {
+                showMessage('Please enter a valid amount (minimum 10 birr)', 'error');
+                return;
+            }
+            
+            if (!telebirr_number || telebirr_number.length < 10) {
+                showMessage('Please enter a valid TeleBirr number', 'error');
+                return;
+            }
+            
+            if (!screenshot) {
+                showMessage('Please upload a screenshot of your payment', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('amount', amount);
+            formData.append('telebirr_number', telebirr_number);
+            formData.append('screenshot', screenshot);
+            
+            try {
+                const response = await fetch(`${API_URL}/payment/deposit-request`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/wallet.html';
+                    }, 3000);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            }
+        });
+        
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        loadTeleBirrNumber();
+    </script>
+</body>
+</html>

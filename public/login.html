@@ -169,9 +169,14 @@
             </div>
             
             <div class="input-group">
-                <label>Password</label>
-                <input type="password" id="password" placeholder="Enter your password">
-            </div>
+    <label>Password</label>
+    <div style="position: relative;">
+        <input type="password" id="password" placeholder="Enter your password" style="width: 100%; padding-right: 40px;">
+        <span onclick="togglePassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">
+            👁️
+        </span>
+    </div>
+</div>
             
             <button class="login-btn" onclick="login()">🔐 Login</button>
             
@@ -230,6 +235,13 @@
                 login();
             }
         });
+        
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+}
+
     </script>
 </body>
 </html>

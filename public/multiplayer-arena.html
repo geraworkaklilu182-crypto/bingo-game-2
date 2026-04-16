@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DIL BINGO - Multiplayer Arena</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .bingo-arena {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .info-section {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-header h1 {
+            color: #ffd700;
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-id-box {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .game-id-box span {
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .bingo-letters {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .letter-btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            width: 60px;
+        }
+
+        .letter-btn .letter {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .letter-btn .count {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .numbers-preview {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .mini-number-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+
+        .mini-num {
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            padding: 5px;
+            text-align: center;
+            font-size: 10px;
+            color: white;
+        }
+
+        .odds-stats {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .odds-stats h4 {
+            color: #ffd700;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 12px;
+            color: white;
+        }
+
+        .stat-row span:last-child {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .called-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .called-section h4 {
+            color: #ffd700;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .called-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .called-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .auto-status {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            margin: 15px 0;
+            color: #ffd700;
+            font-size: 12px;
+        }
+
+        .cards-section {
+            flex: 2;
+            min-width: 500px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .watching-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,215,0,0.3);
+        }
+
+        .watching-header h2 {
+            color: #ffd700;
+            font-size: 20px;
+        }
+
+        .current-number-box {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .current-number-label {
+            font-size: 12px;
+            color: #1a1a2e;
+            opacity: 0.8;
+        }
+
+        .current-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+
+        .timer-box {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .timer-box div:first-child {
+            font-size: 14px;
+            color: #ffd700;
+        }
+
+        #timerDisplay {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        #gameStatus {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .taken-indicator {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .bingo-card {
+            background: rgba(0,0,0,0.6);
+            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .card-number {
+            color: #ffd700;
+            font-size: 14px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.5);
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .col-letters {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .col-letter {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+        }
+
+        .grid-cell.marked, .grid-cell.free {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        .selection-area {
+            background: rgba(0,0,0,0.5);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .selection-title {
+            color: #ffd700;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .selection-subtitle {
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .numbers-select-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .select-card {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            font-size: 10px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .select-card.selected {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        .select-card.taken {
+            background: #dc3545;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .confirm-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .selected-info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #ffd700;
+        }
+
+        .winner-banner {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-call { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+        .btn-auto { background: rgba(255,255,255,0.2); color: white; }
+        .btn-bingo { background: #dc3545; color: white; }
+        .btn-reset { background: rgba(255,255,255,0.2); color: white; }
+        .btn-leave { background: #6c757d; color: white; }
+        .btn-sound { background: rgba(255,255,255,0.2); color: white; }
+
+        @media (max-width: 900px) {
+            .bingo-arena { flex-direction: column; }
+            .cards-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bingo-arena">
+        <!-- LEFT SECTION -->
+        <div class="info-section">
+            <div class="game-header"><h1>🎯 DIL BINGO</h1></div>
+            <div class="game-id-box"><span>🎮 GAME ID: <span id="gameId">SINGLE_GAME</span></span></div>
+            <div class="stats-grid">
+                <div class="stat-box"><div class="stat-label">PLAYERS</div><div class="stat-value" id="playerCount">0</div></div>
+                <div class="stat-box"><div class="stat-label">BET</div><div class="stat-value" id="betAmount">10</div></div>
+                <div class="stat-box"><div class="stat-label">DERASH</div><div class="stat-value" id="derashAmount">0</div></div>
+                <div class="stat-box"><div class="stat-label">CALLED</div><div class="stat-value" id="calledCount">0</div></div>
+            </div>
+            <div class="bingo-letters">
+                <div class="letter-btn"><div class="letter">B</div><div class="count" id="bCount">0</div></div>
+                <div class="letter-btn"><div class="letter">I</div><div class="count" id="iCount">0</div></div>
+                <div class="letter-btn"><div class="letter">N</div><div class="count" id="nCount">0</div></div>
+                <div class="letter-btn"><div class="letter">G</div><div class="count" id="gCount">0</div></div>
+                <div class="letter-btn"><div class="letter">O</div><div class="count" id="oCount">0</div></div>
+            </div>
+            <div class="numbers-preview"><div class="mini-number-grid" id="miniNumberGrid"></div></div>
+            <div class="odds-stats">
+                <h4>📈 ODDS & EVENS</h4>
+                <div class="stat-row"><span>🎲 Odds</span><span id="oddsCount">0</span></div>
+                <div class="stat-row"><span>🔢 Evens</span><span id="evensCount">0</span></div>
+            </div>
+            <div class="called-section"><h4>📢 CALLED NUMBERS</h4><div class="called-list" id="calledList"></div></div>
+            <div class="auto-status" id="autoStatus">⚡ AUTOMATIC OFF</div>
+            <div class="controls">
+                <button class="btn btn-call" onclick="callNumber()">🎲 CALL</button>
+                <button class="btn btn-auto" onclick="toggleAuto()">🔄 PLAY</button>
+                <button class="btn btn-bingo" onclick="pressBingo()">🏆 BINGO!</button>
+                <button class="btn btn-reset" onclick="resetGame()">🆕 NEW GAME</button>
+                <button class="btn btn-leave" onclick="leaveGame()">🚪 LEAVE</button>
+                <button class="btn btn-sound" onclick="toggleSound()">🔊 SOUND</button>
+                <button class="btn btn-sound" onclick="toggleVoice()">🗣️ VOICE</button>
+                <button class="save-btn" onclick="resetAllCards()" style="background:#dc3545;">🔄 RESET ALL CARDS</button>
+
+            </div>
+        </div>
+
+        <!-- RIGHT SECTION -->
+        <div class="cards-section">
+            <div class="watching-header"><h2>👁️ WATCHING ONLY</h2></div>
+            <div class="winner-banner" id="winnerBanner"><h3 id="winnerMessage">🎉 WINNER! 🎉</h3></div>
+            <div class="current-number-box"><div class="current-number-label">LAST CALLED NUMBER</div><div class="current-number" id="currentNumberDisplay">—</div></div>
+            
+            <div class="timer-box">
+                <div>⏱️ NEXT GAME STARTS IN</div>
+                <div id="timerDisplay">00:45</div>
+                <div id="gameStatus">Waiting for players...</div>
+            </div>
+
+            <div class="taken-indicator"><span>❌ Cards already taken: </span><span id="takenCardsList">None</span></div>
+
+            <div class="selection-area" id="selectionArea">
+                <div class="selection-title">🎴 SELECT YOUR CARDS (1-300)</div>
+                <div class="selection-subtitle">Click on cards to select/unselect (Max 2 cards) - 10 birr each</div>
+                <div class="numbers-select-grid" id="numbersGrid"></div>
+                <div class="selected-info" id="selectedInfo">Selected: 0/2 cards</div>
+                <button class="confirm-btn" id="confirmBtn" onclick="confirmSelection()" disabled>✅ CONFIRM SELECTION</button>
+            </div>
+
+            <div class="cards-container" id="cardsContainer"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // ============ WEB AUDIO API SOUND SYSTEM ============
+        let audioContext = null;
+        let soundEnabled = true;
+        let voiceEnabled = true;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playCallSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 880;
+                gain.gain.value = 0.3;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
+                osc.stop(audioContext.currentTime + 0.5);
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playMarkSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 440;
+                gain.gain.value = 0.2;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.2);
+                osc.stop(audioContext.currentTime + 0.2);
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playBingoSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.frequency.value = freq;
+                    gain.gain.value = 0.2;
+                    osc.start(audioContext.currentTime + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + i * 0.15 + 0.5);
+                    osc.stop(audioContext.currentTime + i * 0.15 + 0.5);
+                });
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playBuySound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 330;
+                gain.gain.value = 0.3;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.3);
+                osc.stop(audioContext.currentTime + 0.3);
+                setTimeout(() => {
+                    const osc2 = audioContext.createOscillator();
+                    const gain2 = audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioContext.destination);
+                    osc2.frequency.value = 440;
+                    gain2.gain.value = 0.2;
+                    osc2.start();
+                    gain2.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.2);
+                    osc2.stop(audioContext.currentTime + 0.2);
+                }, 100);
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playAutoSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 660;
+                gain.gain.value = 0.15;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.15);
+                osc.stop(audioContext.currentTime + 0.15);
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playSound(soundId) {
+            if (soundId === 'soundCall') playCallSound();
+            else if (soundId === 'soundMark') playMarkSound();
+            else if (soundId === 'soundBingo') playBingoSound();
+            else if (soundId === 'soundBuy') playBuySound();
+            else if (soundId === 'soundAuto') playAutoSound();
+        }
+
+        function speakNumber(number) {
+            if (!voiceEnabled) return;
+            try {
+                let letter = '';
+                if (number >= 1 && number <= 15) letter = 'B';
+                else if (number >= 16 && number <= 30) letter = 'I';
+                else if (number >= 31 && number <= 45) letter = 'N';
+                else if (number >= 46 && number <= 60) letter = 'G';
+                else if (number >= 61 && number <= 75) letter = 'O';
+                const utterance = new SpeechSynthesisUtterance(`${letter} ${number}`);
+                utterance.rate = 0.9;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            } catch(e) {}
+        }
+
+        function speakWin(name) {
+            if (!voiceEnabled) return;
+            try {
+                const utterance = new SpeechSynthesisUtterance(`${name} won BINGO!`);
+                window.speechSynthesis.speak(utterance);
+            } catch(e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            showStatus(soundEnabled ? '🔊 Sound ON' : '🔇 Sound OFF');
+        }
+
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            showStatus(voiceEnabled ? '🗣️ Voice ON' : '🔇 Voice OFF');
+        }
+
+        document.body.addEventListener('click', function initAudioOnClick() {
+            initAudio();
+            document.body.removeEventListener('click', initAudioOnClick);
+        });
+
+        // ============ CONFIGURATION - SINGLE GAME MODE ============
+        const socket = io();
+        const GAME_ROOM_ID = 'SINGLE_GAME';
+        let playerName = '';
+        let myCards = [];
+        let myWallet = 0;
+        let selectedCardNumbers = [];
+        let cardCost = 10;
+        let calledNumbers = [];
+        let gameActive = false;
+        let autoMode = false;
+        let autoInterval = null;
+        let currentWinner = null;
+        let takenCards = [];
+        let hasConfirmed = false;
+
+        // ============ SOCKET EVENTS ============
+        socket.onAny((event, ...args) => {
+            console.log('📡 Socket event:', event, args);
+        });
+
+        socket.on('connect', () => {
+            console.log('✅ Socket connected!');
+            loadGameState();
+        });
+
+        // ============ LOAD GAME STATE FROM DATABASE ============
+        async function loadGameState() {
+            try {
+                const response = await fetch('/api/game-session/state', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+                
+                console.log('Game state:', data);
+                
+                document.getElementById('playerCount').textContent = data.players || 0;
+                document.getElementById('calledCount').textContent = data.game?.called_numbers?.length || 0;
+                document.getElementById('derashAmount').textContent = (data.players || 0) * cardCost;
+                
+                takenCards = data.takenCards || [];
+                updateTakenCardsDisplay();
+                
+                if (data.myCards && data.myCards.length > 0) {
+                    hasConfirmed = true;
+                    myCards = data.myCards.map(card => ({
+                        id: card.card_number,
+                        numbers: JSON.parse(card.card_data),
+                        marked: JSON.parse(card.marked_numbers || '[]'),
+                        won: card.won || false
+                    }));
+                    renderPlayerCards();
+                    document.getElementById('selectionArea').style.display = 'none';
+                    
+                    // AFTER loading cards, JOIN THE GAME ROOM
+                    joinGameRoom();
+                } else if (!hasConfirmed && data.game?.status !== 'active') {
+                    document.getElementById('selectionArea').style.display = 'block';
+                    renderNumberGrid();
+                }
+                
+                if (data.game?.called_numbers) {
+                    calledNumbers = JSON.parse(data.game.called_numbers || '[]');
+                    renderCalledList();
+                    updateLetterCounts();
+                    updateOddsEvens();
+                    updateMiniNumberGrid();
+                }
+                
+                if (data.game?.status === 'active') {
+                    gameActive = true;
+                    document.getElementById('gameStatus').innerHTML = '🎮 GAME IN PROGRESS! 🎮';
+                    document.getElementById('gameStatus').style.color = '#48bb78';
+                    document.querySelector('.timer-box').style.background = 'rgba(72,187,120,0.2)';
+                    document.getElementById('selectionArea').style.display = 'none';
+                }
+                
+                const walletRes = await fetch('/api/wallet/balance', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const walletData = await walletRes.json();
+                myWallet = walletData.balance;
+                
+            } catch (error) {
+                console.error('Error loading game state:', error);
+            }
+        }
+
+        // ============ JOIN GAME ROOM (CRITICAL FIX) ============
+        async function joinGameRoom() {
+            try {
+                // Get user info
+                const userRes = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const user = await userRes.json();
+                playerName = user.username;
+                
+                console.log('Joining game room:', GAME_ROOM_ID, 'as:', playerName);
+                console.log('My cards:', myCards);
+                
+                socket.emit('join-game', {
+                    gameId: GAME_ROOM_ID,
+                    playerName: playerName,
+                    cards: myCards.map(card => ({
+                        id: card.id,
+                        numbers: card.numbers,
+                        marked: card.marked
+                    })),
+                    userId: user.id
+                });
+            } catch (error) {
+                console.error('Error joining game room:', error);
+            }
+        }
+
+        function updateTakenCardsDisplay() {
+            const container = document.getElementById('takenCardsList');
+            if (takenCards.length > 0) {
+                container.innerHTML = takenCards.map(c => `#${c}`).join(', ');
+            } else {
+                container.innerHTML = 'None';
+            }
+            renderNumberGrid();
+        }
+
+        function renderNumberGrid() {
+            const container = document.getElementById('numbersGrid');
+            if (!container) return;
+            container.innerHTML = '';
+            for (let i = 1; i <= 300; i++) {
+                const div = document.createElement('div');
+                div.className = 'select-card';
+                div.textContent = i;
+                if (takenCards.includes(i)) {
+                    div.classList.add('taken');
+                }
+                if (selectedCardNumbers.includes(i)) {
+                    div.classList.add('selected');
+                }
+                if (!takenCards.includes(i)) {
+                    div.onclick = () => toggleSelectCard(i);
+                }
+                container.appendChild(div);
+            }
+            updateSelectedInfo();
+        }
+
+        // ============ NEW FUNCTIONS FOR MARKING CARDS ============
+
+// Update marked numbers in database
+async function updateMarkedInDatabase(cardId, markedNumbers) {
+    try {
+        await fetch('/api/game-session/update-marked', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ cardId: cardId, markedNumbers: markedNumbers })
+        });
+    } catch (error) {
+        console.error('Error updating marked numbers:', error);
+    }
+}
+
+// Render a single card (without re-rendering all cards)
+function renderSingleCard(cardIdx) {
+    const card = myCards[cardIdx];
+    const container = document.getElementById('cardsContainer');
+    const cards = container.children;
+    
+    if (!card) return;
+    
+    const markedArray = Array.isArray(card.marked) ? card.marked : [];
+    
+    const newCardHtml = `
+        <div class="bingo-card">
+            <div class="card-header"><span class="card-number">🎯 CARD #${card.id}</span></div>
+            <div class="col-letters">${['B','I','N','G','O'].map(l=>`<div class="col-letter">${l}</div>`).join('')}</div>
+            <div class="bingo-grid">
+                ${card.numbers.map((row,r)=>row.map((num,c)=>`
+                    <div class="grid-cell ${markedArray.includes(num) ? 'marked' : ''} ${num==='★'?'free':''}" onclick="markNumber(${cardIdx},${r},${c},${num})">${num}</div>
+                `).join('')).join('')}
+            </div>
+            <div class="card-status">${card.won ? '🏆 WINNER!' : '● ACTIVE'}</div>
+        </div>
+    `;
+    
+    if (cards[cardIdx]) {
+        cards[cardIdx].outerHTML = newCardHtml;
+    } else {
+        renderPlayerCards(); // fallback
+    }
+}
+
+        function toggleSelectCard(number) {
+            if (takenCards.includes(number)) {
+                alert('Card already taken by another player!');
+                return;
+            }
+            
+            if (selectedCardNumbers.includes(number)) {
+                selectedCardNumbers = selectedCardNumbers.filter(n => n !== number);
+            } else if (selectedCardNumbers.length < 2) {
+                selectedCardNumbers.push(number);
+            } else {
+                alert('You can only select maximum 2 cards!');
+                return;
+            }
+            
+            renderNumberGrid();
+        }
+
+        function updateSelectedInfo() {
+            const infoDiv = document.getElementById('selectedInfo');
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (infoDiv) {
+                infoDiv.innerHTML = `Selected: ${selectedCardNumbers.length}/2 cards`;
+            }
+            if (confirmBtn) {
+                confirmBtn.disabled = selectedCardNumbers.length === 0;
+            }
+        }
+
+        async function confirmSelection() {
+            if (selectedCardNumbers.length === 0) {
+                alert('Please select at least 1 card!');
+                return;
+            }
+            
+            const totalCost = selectedCardNumbers.length * cardCost;
+            if (myWallet < totalCost) {
+                alert(`Insufficient balance! Need ${totalCost} birr`);
+                return;
+            }
+            
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.textContent = '⏳ PROCESSING...';
+            confirmBtn.disabled = true;
+            
+            let success = true;
+            
+            for (const cardNumber of selectedCardNumbers) {
+                const cardData = generateCardData(cardNumber);
+                
+                try {
+                    const response = await fetch('/api/game-session/select-card', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ cardNumber: cardNumber, cardData: cardData })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        alert(error.message);
+                        success = false;
+                        break;
+                    }
+                } catch (error) {
+                    console.error('Error selecting card:', error);
+                    alert('Server error');
+                    success = false;
+                    break;
+                }
+            }
+            
+            if (success) {
+                playSound('soundBuy');
+                hasConfirmed = true;
+                document.getElementById('selectionArea').style.display = 'none';
+                // Reload game state to get cards and join room
+                await loadGameState();
+            } else {
+                confirmBtn.textContent = '✅ CONFIRM SELECTION';
+                confirmBtn.disabled = false;
+            }
+        }
+
+        function generateCardData(cardNumber) {
+            const ranges = [{min:1,max:15},{min:16,max:30},{min:31,max:45},{min:46,max:60},{min:61,max:75}];
+            const numbers = [[],[],[],[],[]];
+            for (let col = 0; col < 5; col++) {
+                const colNums = [];
+                while (colNums.length < 5) {
+                    const num = Math.floor(Math.random() * (ranges[col].max - ranges[col].min + 1)) + ranges[col].min;
+                    if (!colNums.includes(num)) colNums.push(num);
+                }
+                colNums.sort((a,b)=>a-b);
+                for (let row = 0; row < 5; row++) numbers[row][col] = colNums[row];
+            }
+            numbers[2][2] = '★';
+            return numbers;
+        }
+
+        function renderPlayerCards() {
+            const container = document.getElementById('cardsContainer');
+            if (!myCards || myCards.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Select cards above to start playing!</div>';
+                return;
+            }
+            
+            console.log('Rendering cards for player:', playerName, 'Cards:', myCards);
+            
+            container.innerHTML = myCards.map((card, idx) => {
+                // Make sure marked is an array
+                const markedArray = Array.isArray(card.marked) ? card.marked : [];
+                
+                return `
+                    <div class="bingo-card">
+                        <div class="card-header"><span class="card-number">🎯 CARD #${card.id}</span></div>
+                        <div class="col-letters">${['B','I','N','G','O'].map(l=>`<div class="col-letter">${l}</div>`).join('')}</div>
+                        <div class="bingo-grid">
+                            ${card.numbers.map((row,r)=>row.map((num,c)=>`
+                                <div class="grid-cell ${markedArray.includes(num) ? 'marked' : ''} ${num==='★'?'free':''}" onclick="markNumber(${idx},${r},${c},${num})">${num}</div>
+                            `).join('')).join('')}
+                        </div>
+                        <div class="card-status">${card.won ? '🏆 WINNER!' : '● ACTIVE'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function markNumber(cardIdx, row, col, number) {
+    if (!gameActive || currentWinner) { showStatus('Game not active!'); return; }
+    if (number === '★') return;
+    if (!calledNumbers.includes(number)) { showStatus(`⚠️ Number ${number} not called!`); return; }
+    
+    const card = myCards[cardIdx];
+    if (!card.marked) card.marked = [];
+    if (card.marked.includes(number)) return;
+    
+    // Add to marked array
+    card.marked.push(number);
+    
+    // Update the database with the new marked number
+    updateMarkedInDatabase(card.id, card.marked);
+    
+    // Re-render just this card instead of all cards
+    renderSingleCard(cardIdx);
+    
+    playSound('soundMark');
+    checkWinOnCard(cardIdx);
+}
+
+// New function to update marked numbers in database
+async function updateMarkedInDatabase(cardId, markedNumbers) {
+    try {
+        await fetch('/api/game-session/update-marked', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ cardId: cardId, markedNumbers: markedNumbers })
+        });
+    } catch (error) {
+        console.error('Error updating marked numbers:', error);
+    }
+}
+
+// New function to render a single card
+function renderSingleCard(cardIdx) {
+    const card = myCards[cardIdx];
+    const container = document.getElementById('cardsContainer');
+    const allCards = container.innerHTML;
+    
+    const cardDivs = container.children;
+    if (cardDivs[cardIdx]) {
+        const markedArray = Array.isArray(card.marked) ? card.marked : [];
+        const newCardHtml = `
+            <div class="bingo-card">
+                <div class="card-header"><span class="card-number">🎯 CARD #${card.id}</span></div>
+                <div class="col-letters">${['B','I','N','G','O'].map(l=>`<div class="col-letter">${l}</div>`).join('')}</div>
+                <div class="bingo-grid">
+                    ${card.numbers.map((row,r)=>row.map((num,c)=>`
+                        <div class="grid-cell ${markedArray.includes(num) ? 'marked' : ''} ${num==='★'?'free':''}" onclick="markNumber(${cardIdx},${r},${c},${num})">${num}</div>
+                    `).join('')).join('')}
+                </div>
+                <div class="card-status">${card.won ? '🏆 WINNER!' : '● ACTIVE'}</div>
+            </div>
+        `;
+        
+        // Replace just this card
+        if (cardDivs[cardIdx]) {
+            cardDivs[cardIdx].outerHTML = newCardHtml;
+        } else {
+            renderPlayerCards();
+        }
+    }
+}
+        function checkWinOnCard(cardIdx) {
+            const card = myCards[cardIdx];
+            if (card.won) return false;
+            
+            for (let row = 0; row < 5; row++) {
+                let complete = true;
+                for (let col = 0; col < 5; col++) {
+                    const num = card.numbers[row][col];
+                    if (num !== '★' && !card.marked.includes(num)) { complete = false; break; }
+                }
+                if (complete) { declareWin(cardIdx, `Row ${row+1}`); return true; }
+            }
+            
+            for (let col = 0; col < 5; col++) {
+                let complete = true;
+                for (let row = 0; row < 5; row++) {
+                    const num = card.numbers[row][col];
+                    if (num !== '★' && !card.marked.includes(num)) { complete = false; break; }
+                }
+                if (complete) { declareWin(cardIdx, `Column ${['B','I','N','G','O'][col]}`); return true; }
+            }
+            
+            let diag1=true, diag2=true;
+            for(let i=0;i<5;i++){
+                const num1 = card.numbers[i][i];
+                const num2 = card.numbers[i][4-i];
+                if(num1 !== '★' && !card.marked.includes(num1)) diag1=false;
+                if(num2 !== '★' && !card.marked.includes(num2)) diag2=false;
+            }
+            if(diag1){ declareWin(cardIdx, 'Main Diagonal'); return true; }
+            if(diag2){ declareWin(cardIdx, 'Anti-Diagonal'); return true; }
+            
+            return false;
+        }
+
+        function declareWin(cardIdx, pattern) {
+            if (!gameActive || currentWinner) return;
+            const card = myCards[cardIdx];
+            if (card.won) return;
+            card.won = true;
+            currentWinner = playerName;
+            gameActive = false;
+            if (autoMode) stopAuto();
+            socket.emit('player-bingo', { gameId: GAME_ROOM_ID, playerName: playerName, cardId: card.id, pattern: pattern });
+            const banner = document.getElementById('winnerBanner');
+            document.getElementById('winnerMessage').innerHTML = `🎉 ${playerName} won on CARD #${card.id} (${pattern})! 🎉`;
+            banner.style.display = 'block';
+            renderPlayerCards();
+            playSound('soundBingo');
+            speakWin(playerName);
+        }
+
+        socket.on('number-called', (data) => {
+    console.log('Number called event:', data);
+    const { number, letter, calledNumbers: serverCalled } = data;
+    calledNumbers = serverCalled.map(c => c.number || c);
+    document.getElementById('currentNumberDisplay').textContent = `${letter}-${number}`;
+    document.getElementById('calledCount').textContent = calledNumbers.length;
+    renderCalledList();
+    updateLetterCounts();
+    updateOddsEvens();
+    updateMiniNumberGrid();
+    
+    const box = document.getElementById('currentNumberBox');
+    if (box) {
+        box.style.transform = 'scale(1.05)';
+        setTimeout(() => { if (box) box.style.transform = 'scale(1)'; }, 200);
+    }
+    
+    for (let idx = 0; idx < myCards.length; idx++) {
+        const card = myCards[idx];
+        if (card.won) continue;
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 5; col++) {
+                if (card.numbers[row][col] === number && !card.marked.includes(number)) {
+                    card.marked.push(number);
+                    updateMarkedInDatabase(card.id, card.marked);  // SAVE TO DB
+                    renderSingleCard(idx);  // ONLY RENDER THIS CARD
+                    playSound('soundMark');
+                    checkWinOnCard(idx);
+                }
+            }
+        }
+    }
+});
+
+        socket.on('game-winner', (data) => {
+            console.log('Game winner event:', data);
+            const { winner, cardId, pattern } = data;
+            const banner = document.getElementById('winnerBanner');
+            document.getElementById('winnerMessage').innerHTML = `🎉 ${winner} won with CARD #${cardId} (${pattern})! 🎉`;
+            banner.style.display = 'block';
+            gameActive = false;
+            if (autoMode) stopAuto();
+            playSound('soundBingo');
+            speakWin(winner);
+        });
+
+        socket.on('players-update', (data) => {
+            console.log('Players update:', data);
+            document.getElementById('playerCount').textContent = data.count;
+            document.getElementById('derashAmount').textContent = data.count * cardCost;
+        });
+
+        socket.on('timer-update', (data) => {
+            console.log('Timer update:', data);
+            document.getElementById('timerDisplay').textContent = data.display;
+            if (data.timeLeft <= 10) {
+                document.querySelector('.timer-box').style.background = 'rgba(220,53,69,0.3)';
+            } else {
+                document.querySelector('.timer-box').style.background = 'rgba(0,0,0,0.5)';
+            }
+        });
+
+        socket.on('game-started', (data) => {
+            console.log('Game started:', data);
+            gameActive = true;
+            document.getElementById('gameStatus').innerHTML = '🎮 GAME IN PROGRESS! 🎮';
+            document.getElementById('gameStatus').style.color = '#48bb78';
+            document.querySelector('.timer-box').style.background = 'rgba(72,187,120,0.2)';
+            document.getElementById('selectionArea').style.display = 'none';
+            if (!autoMode) toggleAuto();
+        });
+
+        socket.on('waiting-for-players', (data) => {
+            console.log('Waiting for players:', data);
+            document.getElementById('gameStatus').innerHTML = `👥 ${data.message}`;
+        });
+
+        function getLetterForNumber(number) {
+            if (number >= 1 && number <= 15) return 'B';
+            if (number >= 16 && number <= 30) return 'I';
+            if (number >= 31 && number <= 45) return 'N';
+            if (number >= 46 && number <= 60) return 'G';
+            if (number >= 61 && number <= 75) return 'O';
+            return '';
+        }
+
+        function renderCalledList() {
+            const container = document.getElementById('calledList');
+            container.innerHTML = calledNumbers.slice(-30).map(n => {
+                const letter = getLetterForNumber(n);
+                return `<span class="called-badge">${letter}-${n}</span>`;
+            }).join('');
+        }
+
+        function updateLetterCounts() {
+            document.getElementById('bCount').textContent = calledNumbers.filter(n => n>=1 && n<=15).length;
+            document.getElementById('iCount').textContent = calledNumbers.filter(n => n>=16 && n<=30).length;
+            document.getElementById('nCount').textContent = calledNumbers.filter(n => n>=31 && n<=45).length;
+            document.getElementById('gCount').textContent = calledNumbers.filter(n => n>=46 && n<=60).length;
+            document.getElementById('oCount').textContent = calledNumbers.filter(n => n>=61 && n<=75).length;
+        }
+
+        function updateOddsEvens() {
+            document.getElementById('oddsCount').textContent = calledNumbers.filter(n => n%2===1).length;
+            document.getElementById('evensCount').textContent = calledNumbers.filter(n => n%2===0).length;
+        }
+
+        function updateMiniNumberGrid() {
+            const container = document.getElementById('miniNumberGrid');
+            let html = '';
+            for (let i = 1; i <= 75; i++) {
+                const isCalled = calledNumbers.includes(i);
+                html += `<div class="mini-num" style="background:${isCalled ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.1)'}">${i}</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function showStatus(msg) {
+            const statusDiv = document.getElementById('autoStatus');
+            statusDiv.innerHTML = msg;
+            setTimeout(() => { if (!autoMode) statusDiv.innerHTML = '⚡ AUTOMATIC OFF'; }, 2000);
+        }
+
+        function callNumber() {
+            if (!gameActive || currentWinner) { showStatus('Game not active!'); return; }
+            const available = [];
+            for (let i = 1; i <= 75; i++) if (!calledNumbers.includes(i)) available.push(i);
+            if (available.length === 0) { showStatus('Game Over!'); stopAuto(); return; }
+            const randomIndex = Math.floor(Math.random() * available.length);
+            const number = available[randomIndex];
+            const letter = getLetterForNumber(number);
+            console.log('Calling number:', number, letter);
+            socket.emit('call-number', { gameId: GAME_ROOM_ID, number: number, letter: letter });
+            playSound('soundCall');
+            speakNumber(number);
+        }
+
+        function pressBingo() {
+            if (!gameActive || currentWinner) { showStatus('No active game!'); return; }
+            let hasWin = false;
+            for (let i = 0; i < myCards.length; i++) {
+                if (checkWinOnCard(i)) { hasWin = true; break; }
+            }
+            if (!hasWin) {
+                alert('❌ No BINGO! You don\'t have a winning pattern!');
+            }
+        }
+
+        function toggleAuto() {
+            if (autoMode) { stopAuto(); }
+            else {
+                autoMode = true;
+                autoInterval = setInterval(() => { if (autoMode && gameActive && !currentWinner) callNumber(); }, 3000);
+                document.getElementById('autoStatus').innerHTML = '🟢 AUTOMATIC ACTIVE';
+                playSound('soundAuto');
+            }
+        }
+
+        function stopAuto() {
+            autoMode = false;
+            if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
+            document.getElementById('autoStatus').innerHTML = '⚡ AUTOMATIC OFF';
+        }
+
+        function resetGame() {
+            if (confirm('Reset game?')) {
+                location.reload();
+            }
+        }
+
+        function leaveGame() {
+            if (confirm('Leave game?')) window.location.href = '/dashboard.html';
+        }
+
+        // Reset only current player's cards
+async function resetMyCards() {
+    if (!confirm('⚠️ This will clear YOUR cards only. You will need to select new cards. Continue?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/game-session/clear-cards', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        
+        const data = await response.json();
+        alert(data.message || 'Your cards have been cleared');
+        
+        // Reload the page to reset
+        location.reload();
+        
+    } catch (error) {
+        console.error('Error resetting cards:', error);
+        alert('Error resetting cards');
+    }
+}
+
+        // Initialize
+        loadGameState();
+       // Only refresh during waiting period, NOT during active game
+
+      setInterval(() => {
+    if (!gameActive) {
+        loadGameState();
+    }
+}, 5000);
+    </script>
+</body>
+</html>

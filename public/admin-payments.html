@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Payments - DIL BINGO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        th {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+        }
+
+        .screenshot-img {
+            max-width: 80px;
+            cursor: pointer;
+        }
+
+        .btn-approve {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .btn-reject {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .status-pending {
+            color: #ed8936;
+            font-weight: bold;
+        }
+
+        .status-approved {
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .status-rejected {
+            color: #f56565;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: auto;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Payment Management</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('deposits')">📥 Pending Deposits</button>
+            <button class="tab-btn" onclick="showTab('withdrawals')">📤 Pending Withdrawals</button>
+            <button class="tab-btn" onclick="showTab('history')">📜 History</button>
+        </div>
+
+        <div id="deposits" class="tab-content active">
+            <h3>Pending Deposit Requests</h3>
+            <table id="depositsTable">
+                <thead>
+                    <tr><th>ID</th><th>User</th><th>Amount</th><th>TeleBirr</th><th>Screenshot</th><th>Date</th><th>Actions</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="withdrawals" class="tab-content">
+            <h3>Pending Withdrawal Requests</h3>
+            <table id="withdrawalsTable">
+                <thead>
+                    <tr><th>ID</th><th>User</th><th>Amount</th><th>TeleBirr</th><th>Date</th><th>Actions</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="history" class="tab-content">
+            <h3>All Transactions History</h3>
+            <table id="historyTable">
+                <thead>
+                    <tr><th>Type</th><th>User</th><th>Amount</th><th>Status</th><th>Date</th><th>Notes</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for screenshot -->
+    <div id="screenshotModal" class="modal">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            <img id="modalImage" src="">
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function loadPendingDeposits() {
+            try {
+                const response = await fetch(`${API_URL}/payment/admin/pending-deposits`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const deposits = await response.json();
+                
+                const tbody = document.querySelector('#depositsTable tbody');
+                tbody.innerHTML = deposits.map(d => `
+                    <tr>
+                        <td>${d.id}</td>
+                        <td>${d.username}</td>
+                        <td>${d.amount} birr</td>
+                        <td>${d.telebirr_number}</td>
+                        <td><img src="${d.screenshot_url}" class="screenshot-img" onclick="showScreenshot('${d.screenshot_url}')"></td>
+                        <td>${new Date(d.created_at).toLocaleString()}</td>
+                        <td>
+                            <button class="btn-approve" onclick="approveDeposit(${d.id})">✅ Approve</button>
+                            <button class="btn-reject" onclick="rejectDeposit(${d.id})">❌ Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading deposits:', error);
+            }
+        }
+
+        async function loadPendingWithdrawals() {
+            try {
+                const response = await fetch(`${API_URL}/payment/admin/pending-withdrawals`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const withdrawals = await response.json();
+                
+                const tbody = document.querySelector('#withdrawalsTable tbody');
+                tbody.innerHTML = withdrawals.map(w => `
+                    <tr>
+                        <td>${w.id}</td>
+                        <td>${w.username}</td>
+                        <td>${w.amount} birr</td>
+                        <td>${w.telebirr_number}</td>
+                        <td>${new Date(w.created_at).toLocaleString()}</td>
+                        <td>
+                            <button class="btn-approve" onclick="completeWithdrawal(${w.id})">✅ Complete</button>
+                            <button class="btn-reject" onclick="rejectWithdrawal(${w.id})">❌ Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading withdrawals:', error);
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const [depositsRes, withdrawalsRes] = await Promise.all([
+                    fetch(`${API_URL}/payment/admin/all-deposits`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch(`${API_URL}/payment/admin/all-withdrawals`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+                
+                const deposits = await depositsRes.json();
+                const withdrawals = await withdrawalsRes.json();
+                
+                const allTransactions = [
+                    ...deposits.map(d => ({ ...d, type: 'deposit' })),
+                    ...withdrawals.map(w => ({ ...w, type: 'withdrawal' }))
+                ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                
+                const tbody = document.querySelector('#historyTable tbody');
+                tbody.innerHTML = allTransactions.map(t => `
+                    <tr>
+                        <td>${t.type === 'deposit' ? '💰 Deposit' : '💸 Withdrawal'}</td>
+                        <td>${t.username}</td>
+                        <td>${t.amount} birr</td>
+                        <td class="status-${t.status}">${t.status.toUpperCase()}</td>
+                        <td>${new Date(t.created_at).toLocaleString()}</td>
+                        <td>${t.admin_notes || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        async function approveDeposit(id) {
+            const notes = prompt('Add admin notes (optional):');
+            try {
+                const response = await fetch(`${API_URL}/payment/admin/approve-deposit/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ admin_notes: notes })
+                });
+                
+                if (response.ok) {
+                    alert('Deposit approved! Coins added to user.');
+                    loadPendingDeposits();
+                    loadHistory();
+                } else {
+                    alert('Error approving deposit');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function rejectDeposit(id) {
+            const reason = prompt('Reason for rejection:');
+            if (!reason) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/payment/admin/reject-deposit/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ admin_notes: reason })
+                });
+                
+                if (response.ok) {
+                    alert('Deposit rejected');
+                    loadPendingDeposits();
+                    loadHistory();
+                } else {
+                    alert('Error rejecting deposit');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function completeWithdrawal(id) {
+            const notes = prompt('Add admin notes (optional):');
+            try {
+                const response = await fetch(`${API_URL}/payment/admin/complete-withdrawal/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ admin_notes: notes })
+                });
+                
+                if (response.ok) {
+                    alert('Withdrawal completed! User has been notified.');
+                    loadPendingWithdrawals();
+                    loadHistory();
+                } else {
+                    alert('Error completing withdrawal');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function rejectWithdrawal(id) {
+            const reason = prompt('Reason for rejection:');
+            if (!reason) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/payment/admin/reject-withdrawal/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ admin_notes: reason })
+                });
+                
+                if (response.ok) {
+                    alert('Withdrawal rejected');
+                    loadPendingWithdrawals();
+                    loadHistory();
+                } else {
+                    alert('Error rejecting withdrawal');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function showScreenshot(url) {
+            const modal = document.getElementById('screenshotModal');
+            const img = document.getElementById('modalImage');
+            img.src = url;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('screenshotModal').style.display = 'none';
+        }
+
+        // Load all data
+        loadPendingDeposits();
+        loadPendingWithdrawals();
+        loadHistory();
+    </script>
+</body>
+</html>

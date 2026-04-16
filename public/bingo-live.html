@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ድል ቢንጎ - DIL BINGO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .bingo-container {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* LEFT SIDE - Game Status Panel */
+        .status-panel {
+            flex: 0.8;
+            min-width: 180px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,215,0,0.3);
+            height: fit-content;
+        }
+
+        .status-title {
+            color: #ffd700;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .status-item {
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+
+        .status-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-top: 3px;
+        }
+
+        .status-stats {
+            margin-top: 15px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 11px;
+            color: #fff;
+        }
+
+        .stat-row span:last-child {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        /* RIGHT SIDE - Game Area */
+        .game-area {
+            flex: 3;
+            min-width: 280px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Header Info Cards */
+        .game-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .info-card {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 8px 5px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .info-label {
+            color: #888;
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            color: #ffd700;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+        /* BINGO Letters */
+        .bingo-letters {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .bingo-letter {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+            color: #ffd700;
+        }
+
+        /* Horizontal Scroll Container */
+        .numbers-scroll {
+            overflow-x: auto;
+            margin-bottom: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .column-headers {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .col-letter {
+            text-align: center;
+            font-weight: bold;
+            font-size: 10px;
+            padding: 4px;
+            background: rgba(255,215,0,0.2);
+            border-radius: 5px;
+            color: #ffd700;
+            width: 40px;
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            gap: 4px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 10px;
+            width: fit-content;
+        }
+
+        .number-cell {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2d2d44, #1a1a2e);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .number-cell.called {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            transform: scale(0.95);
+        }
+
+        /* Called Numbers Bar */
+        .called-bar {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .called-title {
+            color: #ffd700;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .called-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 60px;
+            overflow-y: auto;
+        }
+
+        .called-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .auto-status {
+            text-align: center;
+            margin-top: 10px;
+            color: #ffd700;
+            font-size: 11px;
+        }
+
+        /* Scrollbar */
+        .numbers-scroll::-webkit-scrollbar {
+            height: 5px;
+        }
+        .called-list::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .bingo-container {
+                flex-direction: column;
+            }
+            
+            .status-panel {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .status-title {
+                grid-column: span 2;
+            }
+            
+            .status-stats {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .column-headers {
+                grid-template-columns: repeat(15, 35px);
+            }
+            .col-letter, .number-cell {
+                width: 35px;
+            }
+            .numbers-grid {
+                grid-template-columns: repeat(15, 35px);
+            }
+            .number-cell {
+                height: 35px;
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .column-headers {
+                grid-template-columns: repeat(15, 30px);
+            }
+            .col-letter, .number-cell {
+                width: 30px;
+            }
+            .numbers-grid {
+                grid-template-columns: repeat(15, 30px);
+                gap: 2px;
+                padding: 8px;
+            }
+            .number-cell {
+                height: 30px;
+                font-size: 9px;
+            }
+            .bingo-letter {
+                font-size: 18px;
+                padding: 4px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .column-headers {
+                grid-template-columns: repeat(15, 25px);
+            }
+            .col-letter, .number-cell {
+                width: 25px;
+            }
+            .numbers-grid {
+                grid-template-columns: repeat(15, 25px);
+            }
+            .number-cell {
+                height: 25px;
+                font-size: 8px;
+            }
+            .bingo-letter {
+                font-size: 14px;
+                padding: 3px 8px;
+            }
+            .btn {
+                padding: 5px 12px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bingo-container">
+        <!-- LEFT PANEL - Game Status -->
+        <div class="status-panel">
+            <div class="status-title">🎯 GAME STATUS</div>
+            
+            <div class="status-item">
+                <div class="status-label">🎲 LAST CALLED</div>
+                <div class="status-value" id="lastCalled">-</div>
+            </div>
+            
+            <div class="status-item">
+                <div class="status-label">⏱️ TIME REMAINING</div>
+                <div class="status-value" id="timeRemaining">00:00</div>
+            </div>
+            
+            <div class="status-item">
+                <div class="status-label">🏆 NEXT WIN</div>
+                <div class="status-value" id="nextWin">-</div>
+            </div>
+            
+            <div class="status-stats">
+                <div class="stat-row">
+                    <span>🎲 Odds (1-75)</span>
+                    <span id="oddsCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>🔢 Evens (1-75)</span>
+                    <span id="evensCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>🔵 B Numbers (1-15)</span>
+                    <span id="bCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>🟢 I Numbers (16-30)</span>
+                    <span id="iCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>🟡 N Numbers (31-45)</span>
+                    <span id="nCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>🟠 G Numbers (46-60)</span>
+                    <span id="gCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>🔴 O Numbers (61-75)</span>
+                    <span id="oCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL - Game Area -->
+        <div class="game-area">
+            <!-- Header Info -->
+            <div class="game-header">
+                <div class="info-card">
+                    <div class="info-label">🎮 GAME ID</div>
+                    <div class="info-value" id="gameId">HUECSKD</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">👥 PLAYERS</div>
+                    <div class="info-value" id="players">190</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">💰 BET</div>
+                    <div class="info-value" id="bet">10</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">🏆 DERASH</div>
+                    <div class="info-value" id="derash">1900</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">🎲 CALLED</div>
+                    <div class="info-value" id="calledCount">0</div>
+                </div>
+            </div>
+
+            <!-- BINGO Letters -->
+            <div class="bingo-letters">
+                <div class="bingo-letter">B</div>
+                <div class="bingo-letter">I</div>
+                <div class="bingo-letter">N</div>
+                <div class="bingo-letter">G</div>
+                <div class="bingo-letter">O</div>
+            </div>
+
+            <!-- Numbers Grid -->
+            <div class="numbers-scroll">
+                <div class="column-headers" id="colHeaders"></div>
+                <div class="numbers-grid" id="numbersGrid"></div>
+            </div>
+
+            <!-- Called Numbers -->
+            <div class="called-bar">
+                <div class="called-title">📢 CALLED NUMBERS</div>
+                <div class="called-list" id="calledList"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn btn-primary" onclick="callNumber()">🎲 CALL NUMBER</button>
+                <button class="btn btn-secondary" onclick="autoCall()">🔄 AUTO</button>
+                <button class="btn btn-secondary" onclick="resetGame()">🆕 NEW GAME</button>
+                <button class="btn btn-danger" onclick="leaveGame()">🚪 LEAVE</button>
+                <button class="btn btn-secondary" onclick="refreshGame()">🔄 REFRESH</button>
+            </div>
+
+            <div class="auto-status" id="autoStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameId = generateGameId();
+        let calledNumbers = [];
+        let autoMode = false;
+        let autoInterval = null;
+        let players = 190;
+        let bet = 10;
+        
+        function generateGameId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let id = '';
+            for (let i = 0; i < 8; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return id;
+        }
+        
+        // Create number grid
+        function createNumberGrid() {
+            const grid = [];
+            const ranges = [
+                { min: 1, max: 15, col: 'B' },
+                { min: 16, max: 30, col: 'I' },
+                { min: 31, max: 45, col: 'N' },
+                { min: 46, max: 60, col: 'G' },
+                { min: 61, max: 75, col: 'O' }
+            ];
+            
+            for (let row = 0; row < 15; row++) {
+                grid[row] = [];
+                for (let col = 0; col < 5; col++) {
+                    const num = ranges[col].min + row;
+                    grid[row][col] = { number: num, called: false, col: ranges[col].col };
+                }
+            }
+            return grid;
+        }
+        
+        let numberGrid = createNumberGrid();
+        
+        function renderGrid() {
+            const container = document.getElementById('numbersGrid');
+            container.innerHTML = '';
+            
+            for (let row = 0; row < 15; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cell = numberGrid[row][col];
+                    const div = document.createElement('div');
+                    div.className = 'number-cell';
+                    if (cell.called) div.classList.add('called');
+                    div.textContent = cell.number;
+                    container.appendChild(div);
+                }
+            }
+            
+            const headersContainer = document.getElementById('colHeaders');
+            headersContainer.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const header = document.createElement('div');
+                header.className = 'col-letter';
+                header.textContent = numberGrid[0][i].col;
+                headersContainer.appendChild(header);
+            }
+        }
+        
+        function updateStats() {
+            const totalCalled = calledNumbers.length;
+            document.getElementById('calledCount').textContent = totalCalled;
+            
+            const odds = calledNumbers.filter(n => n % 2 === 1).length;
+            const evens = calledNumbers.filter(n => n % 2 === 0).length;
+            document.getElementById('oddsCount').textContent = odds;
+            document.getElementById('evensCount').textContent = evens;
+            
+            const bCount = calledNumbers.filter(n => n >= 1 && n <= 15).length;
+            const iCount = calledNumbers.filter(n => n >= 16 && n <= 30).length;
+            const nCount = calledNumbers.filter(n => n >= 31 && n <= 45).length;
+            const gCount = calledNumbers.filter(n => n >= 46 && n <= 60).length;
+            const oCount = calledNumbers.filter(n => n >= 61 && n <= 75).length;
+            
+            document.getElementById('bCount').textContent = bCount;
+            document.getElementById('iCount').textContent = iCount;
+            document.getElementById('nCount').textContent = nCount;
+            document.getElementById('gCount').textContent = gCount;
+            document.getElementById('oCount').textContent = oCount;
+            
+            const derash = bet * players;
+            document.getElementById('derash').textContent = derash;
+        }
+        
+        function renderCalledList() {
+            const container = document.getElementById('calledList');
+            container.innerHTML = calledNumbers.map(n => 
+                `<span class="called-badge">${n}</span>`
+            ).join('');
+            
+            if (calledNumbers.length > 0) {
+                document.getElementById('lastCalled').textContent = calledNumbers[calledNumbers.length - 1];
+            }
+        }
+        
+        function callNumber() {
+            const available = [];
+            for (let row = 0; row < 15; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const num = numberGrid[row][col].number;
+                    if (!calledNumbers.includes(num)) {
+                        available.push(num);
+                    }
+                }
+            }
+            
+            if (available.length === 0) {
+                document.getElementById('autoStatus').innerHTML = '🎉 GAME OVER! All numbers called! 🎉';
+                stopAuto();
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * available.length);
+            const number = available[randomIndex];
+            calledNumbers.push(number);
+            
+            for (let row = 0; row < 15; row++) {
+                for (let col = 0; col < 5; col++) {
+                    if (numberGrid[row][col].number === number) {
+                        numberGrid[row][col].called = true;
+                    }
+                }
+            }
+            
+            renderGrid();
+            renderCalledList();
+            updateStats();
+            
+            // Update time remaining simulation
+            updateTimeRemaining();
+        }
+        
+        function updateTimeRemaining() {
+            const randomSeconds = Math.floor(Math.random() * 30) + 10;
+            const minutes = Math.floor(randomSeconds / 60);
+            const seconds = randomSeconds % 60;
+            document.getElementById('timeRemaining').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            const nextNumbers = ['BINGO', 'LINE', 'CORNERS', 'X-PATTERN'];
+            const randomWin = nextNumbers[Math.floor(Math.random() * nextNumbers.length)];
+            document.getElementById('nextWin').textContent = randomWin;
+        }
+        
+        function autoCall() {
+            if (autoMode) {
+                stopAuto();
+                document.getElementById('autoStatus').innerHTML = '';
+            } else {
+                autoMode = true;
+                autoInterval = setInterval(() => {
+                    if (autoMode) callNumber();
+                }, 2000);
+                document.getElementById('autoStatus').innerHTML = '🟢 AUTO MODE ACTIVE - Calling every 2 seconds';
+            }
+        }
+        
+        function stopAuto() {
+            autoMode = false;
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+        }
+        
+        function resetGame() {
+            stopAuto();
+            gameId = generateGameId();
+            document.getElementById('gameId').textContent = gameId;
+            calledNumbers = [];
+            numberGrid = createNumberGrid();
+            renderGrid();
+            renderCalledList();
+            updateStats();
+            document.getElementById('autoStatus').innerHTML = '';
+            document.getElementById('lastCalled').textContent = '-';
+            updateTimeRemaining();
+        }
+        
+        function refreshGame() {
+            resetGame();
+        }
+        
+        function leaveGame() {
+            if (confirm('Are you sure you want to leave the game?')) {
+                window.location.href = '/dashboard.html';
+            }
+        }
+        
+        function simulatePlayers() {
+            setInterval(() => {
+                const change = Math.floor(Math.random() * 5) - 2;
+                let newPlayers = players + change;
+                if (newPlayers < 10) newPlayers = 10;
+                if (newPlayers > 500) newPlayers = 500;
+                players = newPlayers;
+                document.getElementById('players').textContent = players;
+                updateStats();
+            }, 8000);
+        }
+        
+        // Initialize
+        renderGrid();
+        updateStats();
+        simulatePlayers();
+        updateTimeRemaining();
+        setInterval(updateTimeRemaining, 30000);
+        
+        document.getElementById('gameId').textContent = gameId;
+        document.getElementById('bet').textContent = bet;
+    </script>
+</body>
+</html>

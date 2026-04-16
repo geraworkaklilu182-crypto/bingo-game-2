@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Play - Bingo Rules</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .rules-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        h2 {
+            color: #ffd700;
+            margin: 25px 0 15px 0;
+            font-size: 22px;
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            color: #ffd700;
+            margin: 15px 0 10px 0;
+            font-size: 18px;
+        }
+
+        p {
+            color: #ddd;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .rule-card {
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .win-pattern {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        .button-example {
+            background: rgba(255,215,0,0.2);
+            padding: 8px 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 5px;
+            font-family: monospace;
+        }
+
+        .grid-demo {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            gap: 5px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        .demo-cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .demo-cell.win {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        .back-btn {
+            display: block;
+            width: 200px;
+            margin: 30px auto 0;
+            padding: 12px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: none;
+            border-radius: 30px;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+        }
+
+        @media (max-width: 600px) {
+            .rules-container {
+                padding: 15px;
+            }
+            .demo-cell {
+                width: 40px;
+                height: 40px;
+                font-size: 12px;
+            }
+            h1 { font-size: 24px; }
+            h2 { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="rules-container">
+        <h1>🎯 BINGO - HOW TO PLAY</h1>
+
+        <!-- Quick Start -->
+        <div class="rule-card">
+            <h2>🚀 QUICK START</h2>
+            <p>1️⃣ <strong>Buy Cards</strong> - Click "+1 CARD" (costs coins from your wallet)</p>
+            <p>2️⃣ <strong>Start Game</strong> - Click "CALL NUMBER" or turn on "AUTO"</p>
+            <p>3️⃣ <strong>Mark Numbers</strong> - Click matching numbers on your cards</p>
+            <p>4️⃣ <strong>Get BINGO!</strong> - Complete 5 in a row → WIN COINS!</p>
+            
+            <img src="/path/to/your-image.png" alt="Bingo Rules" style="width:100%; max-width:500px; margin:20px auto; display:block; border-radius:10px;">
+        </div>
+
+        <!-- Win Patterns -->
+        <div class="rule-card">
+            <h2>🏆 WINNING PATTERNS</h2>
+            <p>Get <strong>5 marked numbers in a row</strong> in any of these patterns:</p>
+            
+            <div class="grid-demo">
+                <div class="demo-cell win">B</div><div class="demo-cell win">I</div><div class="demo-cell win">N</div><div class="demo-cell win">G</div><div class="demo-cell win">O</div>
+            </div>
+            <p style="text-align: center;">⬆️ <strong>HORIZONTAL ROW</strong> - Any full row</p>
+
+            <div class="grid-demo">
+                <div class="demo-cell win">12</div><div class="demo-cell">16</div><div class="demo-cell">31</div><div class="demo-cell">46</div><div class="demo-cell">61</div>
+                <div class="demo-cell win">3</div><div class="demo-cell">20</div><div class="demo-cell">45</div><div class="demo-cell">46</div><div class="demo-cell">69</div>
+                <div class="demo-cell win">2</div><div class="demo-cell">25</div><div class="demo-cell">★</div><div class="demo-cell">57</div><div class="demo-cell">63</div>
+                <div class="demo-cell win">9</div><div class="demo-cell">28</div><div class="demo-cell">40</div><div class="demo-cell">58</div><div class="demo-cell">70</div>
+                <div class="demo-cell win">4</div><div class="demo-cell">23</div><div class="demo-cell">35</div><div class="demo-cell">53</div><div class="demo-cell">74</div>
+            </div>
+            <p style="text-align: center;">⬆️ <strong>VERTICAL COLUMN</strong> - Any full column (B, I, N, G, or O)</p>
+
+            <div class="grid-demo">
+                <div class="demo-cell win">12</div><div class="demo-cell">16</div><div class="demo-cell">31</div><div class="demo-cell">46</div><div class="demo-cell">61</div>
+                <div class="demo-cell">3</div><div class="demo-cell win">20</div><div class="demo-cell">45</div><div class="demo-cell">46</div><div class="demo-cell">69</div>
+                <div class="demo-cell">2</div><div class="demo-cell">25</div><div class="demo-cell win">★</div><div class="demo-cell">57</div><div class="demo-cell">63</div>
+                <div class="demo-cell">9</div><div class="demo-cell">28</div><div class="demo-cell">40</div><div class="demo-cell win">58</div><div class="demo-cell">70</div>
+                <div class="demo-cell">4</div><div class="demo-cell">23</div><div class="demo-cell">35</div><div class="demo-cell">53</div><div class="demo-cell win">74</div>
+            </div>
+            <p style="text-align: center;">⬆️ <strong>DIAGONALS</strong> - Top-left to bottom-right OR Top-right to bottom-left</p>
+        </div>
+
+        <!-- Loss Conditions -->
+        <div class="rule-card">
+            <h2>❌ WHEN YOU LOSE</h2>
+            <p><span class="win-pattern">😢 No BINGO</span> - Game ends with all 75 numbers called, no pattern completed</p>
+            <p><span class="win-pattern">💸 No Coins</span> - Can't buy cards if wallet is empty</p>
+            <p><span class="win-pattern">🃏 No Cards</span> - Can't win without buying cards first</p>
+            <p><span class="win-pattern">⏰ Time Out</span> - If you don't mark numbers before next call (auto-mark helps!)</p>
+        </div>
+
+        <!-- Controls Guide -->
+        <div class="rule-card">
+            <h2>🎮 CONTROLS GUIDE</h2>
+            <p><span class="button-example">🎲 CALL NUMBER</span> - Calls a random number (1-75)</p>
+            <p><span class="button-example">🔄 AUTO</span> - Automatically calls numbers every few seconds</p>
+            <p><span class="button-example">🃏 +1 CARD</span> - Buy one bingo card (costs game stake)</p>
+            <p><span class="button-example">🃏🃏🃏 +3 CARDS</span> - Buy three cards at once</p>
+            <p><span class="button-example">🆕 RESET</span> - Start a fresh game (clears all cards)</p>
+            <p><span class="button-example">🔊 SOUND</span> - Turn sound effects on/off</p>
+            <p><span class="button-example">🗣️ VOICE</span> - Turn number announcements on/off</p>
+            <p><span class="button-example">🚪 LEAVE</span> - Exit to dashboard</p>
+        </div>
+
+        <!-- Admin Controls -->
+        <div class="rule-card">
+            <h2>👑 ADMIN CONTROLS (Visible to Admins Only)</h2>
+            <p><span class="button-example">👥 Max Players</span> - Set maximum players in game</p>
+            <p><span class="button-example">⏱️ Call Interval</span> - How fast AUTO mode calls numbers</p>
+            <p><span class="button-example">💰 Game Cost</span> - Cost to buy a card (10-100 coins)</p>
+            <p><span class="button-example">🏆 Win Multiplier</span> - Prize multiplier when you win</p>
+            <p><span class="button-example">💸 Commission</span> - Admin's cut from each win (default 20%)</p>
+        </div>
+
+        <!-- Back Button -->
+        <button class="back-btn" onclick="goBack()">← BACK TO GAME</button>
+    </div>
+
+    <script>
+        function goBack() {
+            window.location.href = '/smart-bingo.html';
+        }
+    </script>
+</body>
+</html>

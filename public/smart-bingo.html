@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Smart Bingo - DIL BINGO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .game-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            flex: 0.8;
+            min-width: 200px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 15px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,215,0,0.3);
+            height: fit-content;
+        }
+
+        .admin-title {
+            color: #ffd700;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .admin-setting {
+            margin-bottom: 10px;
+        }
+
+        .admin-setting label {
+            display: block;
+            color: #aaa;
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        .admin-setting input, .admin-setting select {
+            width: 100%;
+            padding: 6px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 6px;
+            color: #ffd700;
+            font-size: 12px;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 8px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: none;
+            border-radius: 6px;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        /* Game Status Panel */
+        .status-panel {
+            flex: 0.6;
+            min-width: 160px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-title {
+            color: #ffd700;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .status-item {
+            margin-bottom: 8px;
+            padding: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+        }
+
+        .status-label {
+            font-size: 9px;
+            color: #888;
+        }
+
+        .status-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        /* Game Area */
+        .game-area {
+            flex: 2.5;
+            min-width: 280px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        /* Header Cards */
+        .game-header {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .info-card {
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 8px;
+            color: #888;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        /* Player Cards Section - COMPACT */
+        .player-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .card-container {
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            padding: 6px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .card-title {
+            color: #ffd700;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .card-win {
+            color: #48bb78;
+            font-size: 8px;
+        }
+
+        /* Compact Bingo Grid */
+        .bingo-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+        }
+
+        .mini-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            font-size: 8px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mini-cell.marked {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        .mini-cell:hover:not(.marked) {
+            background: rgba(255,215,0,0.3);
+        }
+
+        /* Buy Section */
+        .buy-section {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .buy-btn {
+            flex: 1;
+            padding: 8px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        /* Called Numbers */
+        .called-bar {
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        .called-title {
+            font-size: 10px;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .called-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-height: 50px;
+            overflow-y: auto;
+        }
+
+        .called-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .auto-status {
+            text-align: center;
+            margin-top: 8px;
+            color: #ffd700;
+            font-size: 10px;
+        }
+
+        /* Scrollbar */
+        .player-cards::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .player-cards::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        .player-cards::-webkit-scrollbar-thumb {
+            background: #ffd700;
+            border-radius: 4px;
+        }
+        .called-list::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        @media (max-width: 800px) {
+            .game-wrapper {
+                flex-direction: column;
+            }
+            .admin-panel, .status-panel {
+                flex: 1;
+            }
+            .player-cards {
+                grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            }
+            .mini-cell {
+                font-size: 7px;
+            }
+            .card-title {
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio Elements for Sounds -->
+    <audio id="soundCall" preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="soundMark" preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/button-click-01.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="soundBingo" preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/fanfare-6.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="soundBuy" preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/cash-register-2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="soundAuto" preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/beep-07.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="game-wrapper">
+        <!-- ADMIN PANEL -->
+        <div class="admin-panel" id="adminPanel" style="display: none;">
+            <div class="admin-title">👑 ADMIN CONTROLS</div>
+            <div class="admin-setting">
+                <label>👥 Max Players</label>
+                <input type="number" id="maxPlayers" value="10" min="1" max="100">
+            </div>
+            <div class="admin-setting">
+                <label>⏱️ Call Interval (seconds)</label>
+                <input type="number" id="callInterval" value="3" min="1" max="10" step="0.5">
+            </div>
+            <div class="admin-setting">
+                <label>💰 Game Cost (coins)</label>
+                <input type="number" id="gameCost" value="10" min="5" max="100">
+            </div>
+            <div class="admin-setting">
+                <label>🏆 Win Prize Multiplier</label>
+                <input type="number" id="winMultiplier" value="2" min="1" max="10">
+            </div>
+            <div class="admin-setting">
+                <label>💸 Admin Commission (%)</label>
+                <input type="number" id="commission" value="20" min="0" max="50">
+            </div>
+            <button class="save-btn" onclick="saveAdminSettings()">💾 SAVE SETTINGS</button>
+        </div>
+
+        <!-- GAME STATUS PANEL -->
+        <div class="status-panel">
+            <div class="status-title">🎯 GAME STATUS</div>
+            <div class="status-item">
+                <div class="status-label">🎮 GAME ID</div>
+                <div class="status-value" id="gameId">LOADING...</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">👥 PLAYERS ONLINE</div>
+                <div class="status-value" id="playerCount">0</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">🎲 LAST CALLED</div>
+                <div class="status-value" id="lastCalled">-</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">💰 TOTAL PRIZE</div>
+                <div class="status-value" id="totalPrize">0</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">🎯 MY CARDS</div>
+                <div class="status-value" id="myCardsCount">0</div>
+            </div>
+        </div>
+
+        <!-- GAME AREA -->
+        <div class="game-area">
+            <div class="game-header">
+                <div class="info-card">
+                    <div class="info-label">🎮 GAME MODE</div>
+                    <div class="info-value">HYBRID</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">💰 MY WALLET</div>
+                    <div class="info-value" id="myWallet">100</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">🎯 STAKE</div>
+                    <div class="info-value" id="stakeAmount">10</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">🎲 CALLED</div>
+                    <div class="info-value" id="calledCount">0</div>
+                </div>
+            </div>
+
+            <!-- Player Cards -->
+            <div class="player-cards" id="playerCards"></div>
+
+            <!-- Buy Card Section -->
+            <div class="buy-section">
+                <button class="buy-btn" onclick="buyCard()">🃏 +1 CARD (10)</button>
+                <button class="buy-btn" onclick="buyMultipleCards()">🃏🃏🃏 +3 CARDS (30)</button>
+            </div>
+
+            <!-- Called Numbers -->
+            <div class="called-bar">
+                <div class="called-title">📢 CALLED NUMBERS</div>
+                <div class="called-list" id="calledList"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn btn-primary" onclick="callNumberWithSound()">🎲 CALL NUMBER</button>
+                <button class="btn btn-secondary" onclick="toggleAuto()">🔄 AUTO</button>
+                <button class="btn btn-secondary" onclick="resetGame()">🆕 RESET</button>
+                <button class="btn btn-danger" onclick="leaveGame()">🚪 LEAVE</button>
+                <button class="btn btn-secondary" onclick="toggleSound()">🔊 SOUND</button>
+                <button class="btn btn-secondary" onclick="toggleVoice()">🗣️ VOICE</button>
+            </div>
+            <div class="auto-status" id="autoStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============ SOUND SYSTEM (Simple & Working) ============
+        let soundEnabled = true;
+        let voiceEnabled = true;
+        
+        function playSound(soundId) {
+            if (!soundEnabled) return;
+            try {
+                const audio = document.getElementById(soundId);
+                if (audio) {
+                    audio.currentTime = 0;
+                    audio.play().catch(e => console.log('Sound error:', e));
+                }
+            } catch(e) { console.log('Sound error:', e); }
+        }
+        
+        function speakNumber(number) {
+            if (!voiceEnabled) return;
+            try {
+                let letter = '';
+                if (number >= 1 && number <= 15) letter = 'B';
+                else if (number >= 16 && number <= 30) letter = 'I';
+                else if (number >= 31 && number <= 45) letter = 'N';
+                else if (number >= 46 && number <= 60) letter = 'G';
+                else if (number >= 61 && number <= 75) letter = 'O';
+                
+                const utterance = new SpeechSynthesisUtterance(`${letter} ${number}`);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.1;
+                utterance.volume = 0.8;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            } catch(e) { console.log('Speech error:', e); }
+        }
+        
+        function speakWin() {
+            if (!voiceEnabled) return;
+            try {
+                const utterance = new SpeechSynthesisUtterance('BINGO! You won! Congratulations!');
+                utterance.rate = 1;
+                utterance.pitch = 1.2;
+                utterance.volume = 1;
+                window.speechSynthesis.speak(utterance);
+            } catch(e) { console.log('Speech error:', e); }
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            showNotification(soundEnabled ? '🔊 Sound ON' : '🔇 Sound OFF', 'info');
+        }
+        
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            showNotification(voiceEnabled ? '🗣️ Voice ON' : '🔇 Voice OFF', 'info');
+        }
+        
+        // ============ GAME STATE ============
+        let gameId = 'BINGO' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        let calledNumbers = [];
+        let autoMode = false;
+        let autoInterval = null;
+        let playerCards = [];
+        let myWallet = 100;
+        let currentStake = 10;
+        let playersOnline = 1;
+        
+        // Admin settings
+        let maxPlayers = 10;
+        let callInterval = 3;
+        let gameCost = 10;
+        let winMultiplier = 2;
+        let adminCommission = 20;
+        let isAdmin = false;
+        
+        // Check if current user is admin
+        async function checkAdminStatus() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const user = await response.json();
+                if (user.role === 'admin') {
+                    isAdmin = true;
+                    document.getElementById('adminPanel').style.display = 'block';
+                }
+            } catch(e) {
+                console.log('Not admin');
+            }
+        }
+        
+        // Generate random bingo card
+        function generateCard(cardId) {
+            const card = [];
+            const ranges = [
+                { min: 1, max: 15 },
+                { min: 16, max: 30 },
+                { min: 31, max: 45 },
+                { min: 46, max: 60 },
+                { min: 61, max: 75 }
+            ];
+            
+            for (let col = 0; col < 5; col++) {
+                const numbers = [];
+                while (numbers.length < 5) {
+                    const num = Math.floor(Math.random() * (ranges[col].max - ranges[col].min + 1)) + ranges[col].min;
+                    if (!numbers.includes(num)) {
+                        numbers.push(num);
+                    }
+                }
+                numbers.sort((a, b) => a - b);
+                for (let row = 0; row < 5; row++) {
+                    if (!card[row]) card[row] = [];
+                    card[row][col] = numbers[row];
+                }
+            }
+            card[2][2] = '★';
+            
+            return {
+                id: cardId,
+                numbers: card,
+                marked: Array(5).fill().map(() => Array(5).fill(false)),
+                won: false
+            };
+        }
+        
+        // Initialize marked for free space
+        function initFreeSpace(card) {
+            card.marked[2][2] = true;
+        }
+        
+        // Buy a new card
+        function buyCard() {
+            if (myWallet < gameCost) {
+                alert(`Insufficient funds! Need ${gameCost} coins`);
+                return;
+            }
+            
+            if (playerCards.length >= 10) {
+                alert('Maximum 10 cards per player!');
+                return;
+            }
+            
+            myWallet -= gameCost;
+            const newCard = generateCard(Date.now() + Math.random());
+            initFreeSpace(newCard);
+            playerCards.push(newCard);
+            
+            updateWalletDisplay();
+            renderPlayerCards();
+            updateStats();
+            
+            playSound('soundBuy');
+            showNotification(`🎴 Bought new card! -${gameCost} coins`, 'success');
+        }
+        
+        // Buy multiple cards
+        function buyMultipleCards() {
+            const cost = gameCost * 3;
+            if (myWallet < cost) {
+                alert(`Insufficient funds! Need ${cost} coins`);
+                return;
+            }
+            
+            if (playerCards.length + 3 > 10) {
+                alert('Would exceed maximum 10 cards!');
+                return;
+            }
+            
+            myWallet -= cost;
+            for (let i = 0; i < 3; i++) {
+                const newCard = generateCard(Date.now() + Math.random() + i);
+                initFreeSpace(newCard);
+                playerCards.push(newCard);
+            }
+            
+            updateWalletDisplay();
+            renderPlayerCards();
+            updateStats();
+            
+            playSound('soundBuy');
+            showNotification(`🎴 Bought 3 cards! -${cost} coins`, 'success');
+        }
+        
+        // Mark a number on a specific card (manual marking)
+        function markNumber(cardIdx, row, col) {
+            const card = playerCards[cardIdx];
+            if (card.won) return;
+            
+            const number = card.numbers[row][col];
+            if (number === '★') return;
+            
+            // Check if number has been called
+            if (!calledNumbers.includes(number)) {
+                showNotification(`⚠️ Number ${number} hasn't been called yet!`, 'error');
+                return;
+            }
+            
+            if (card.marked[row][col]) return;
+            
+            card.marked[row][col] = true;
+            renderPlayerCards();
+            playSound('soundMark');
+            checkWin(cardIdx);
+        }
+        
+        // Auto-mark numbers on all cards
+        function autoMarkNumber(number) {
+            for (let cardIdx = 0; cardIdx < playerCards.length; cardIdx++) {
+                const card = playerCards[cardIdx];
+                if (card.won) continue;
+                
+                for (let row = 0; row < 5; row++) {
+                    for (let col = 0; col < 5; col++) {
+                        if (card.numbers[row][col] === number && !card.marked[row][col]) {
+                            card.marked[row][col] = true;
+                            renderPlayerCards();
+                            checkWin(cardIdx);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Check for win
+        function checkWin(cardIdx) {
+            const card = playerCards[cardIdx];
+            if (card.won) return false;
+            
+            // Check rows
+            for (let row = 0; row < 5; row++) {
+                let rowComplete = true;
+                for (let col = 0; col < 5; col++) {
+                    if (!card.marked[row][col] && card.numbers[row][col] !== '★') {
+                        rowComplete = false;
+                        break;
+                    }
+                }
+                if (rowComplete) {
+                    declareWin(cardIdx, `Row ${row + 1}`);
+                    return true;
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 5; col++) {
+                let colComplete = true;
+                for (let row = 0; row < 5; row++) {
+                    if (!card.marked[row][col] && card.numbers[row][col] !== '★') {
+                        colComplete = false;
+                        break;
+                    }
+                }
+                if (colComplete) {
+                    declareWin(cardIdx, `Column ${col + 1}`);
+                    return true;
+                }
+            }
+            
+            // Check diagonals
+            let diag1 = true;
+            let diag2 = true;
+            for (let i = 0; i < 5; i++) {
+                if (!card.marked[i][i] && card.numbers[i][i] !== '★') diag1 = false;
+                if (!card.marked[i][4-i] && card.numbers[i][4-i] !== '★') diag2 = false;
+            }
+            if (diag1) {
+                declareWin(cardIdx, 'Main Diagonal');
+                return true;
+            }
+            if (diag2) {
+                declareWin(cardIdx, 'Anti-Diagonal');
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Declare win and give reward
+        async function declareWin(cardIdx, pattern) {
+            const card = playerCards[cardIdx];
+            if (card.won) return;
+            
+            card.won = true;
+            
+            // Calculate winnings
+            const winAmount = Math.floor(currentStake * winMultiplier);
+            const commissionAmount = Math.floor(winAmount * adminCommission / 100);
+            const playerWin = winAmount - commissionAmount;
+            
+            myWallet += playerWin;
+            updateWalletDisplay();
+            
+            playSound('soundBingo');
+            speakWin();
+            
+            showNotification(`🎉 BINGO! Card #${card.id.toString().slice(-6)} won on ${pattern}! Won ${playerWin} coins!`, 'success');
+            
+            // Auto-stop auto mode on win
+            if (autoMode) {
+                stopAuto();
+            }
+            
+            renderPlayerCards();
+        }
+        
+        // Call random number with sound
+        function callNumberWithSound() {
+            callNumber();
+            if (calledNumbers.length > 0) {
+                const lastNumber = calledNumbers[calledNumbers.length - 1];
+                playSound('soundCall');
+                speakNumber(lastNumber);
+            }
+        }
+        
+        // Call random number
+        function callNumber() {
+            const available = [];
+            for (let i = 1; i <= 75; i++) {
+                if (!calledNumbers.includes(i)) {
+                    available.push(i);
+                }
+            }
+            
+            if (available.length === 0) {
+                showNotification('Game Over! All numbers called!', 'error');
+                stopAuto();
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * available.length);
+            const number = available[randomIndex];
+            calledNumbers.push(number);
+            
+            // Update displays
+            document.getElementById('lastCalled').textContent = number;
+            document.getElementById('calledCount').textContent = calledNumbers.length;
+            
+            // Auto-mark on all player cards
+            autoMarkNumber(number);
+            
+            // Render called numbers list
+            renderCalledList();
+            
+            showNotification(`🎲 Number called: ${number}`, 'info');
+            
+            // Update total prize
+            const totalPrize = playersOnline * currentStake;
+            document.getElementById('totalPrize').textContent = totalPrize;
+        }
+        
+        // Render all player cards
+        function renderPlayerCards() {
+            const container = document.getElementById('playerCards');
+            
+            if (playerCards.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">No cards yet. Buy a card to play!</div>';
+                document.getElementById('myCardsCount').textContent = '0';
+                return;
+            }
+            
+            document.getElementById('myCardsCount').textContent = playerCards.length;
+            
+            container.innerHTML = playerCards.map((card, idx) => `
+                <div class="card-container">
+                    <div class="card-header">
+                        <span class="card-title">🎴 CARD #${card.id.toString().slice(-6)}</span>
+                        <span class="card-win">${card.won ? '🏆 WINNER!' : '🎯 Active'}</span>
+                    </div>
+                    <div class="bingo-mini-grid">
+                        ${card.numbers.map((row, r) => row.map((num, c) => `
+                            <div class="mini-cell ${card.marked[r][c] ? 'marked' : ''}" 
+                                 onclick="markNumber(${idx}, ${r}, ${c})">
+                                ${num === '★' ? '★' : num}
+                            </div>
+                        `).join('')).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render called numbers
+        function renderCalledList() {
+            const container = document.getElementById('calledList');
+            container.innerHTML = calledNumbers.map(n => 
+                `<span class="called-badge">${n}</span>`
+            ).join('');
+        }
+        
+        // Auto mode
+        function toggleAuto() {
+            if (autoMode) {
+                stopAuto();
+            } else {
+                autoMode = true;
+                autoInterval = setInterval(() => {
+                    if (autoMode && calledNumbers.length < 75) {
+                        callNumberWithSound();
+                    } else if (calledNumbers.length >= 75) {
+                        stopAuto();
+                    }
+                }, callInterval * 1000);
+                document.getElementById('autoStatus').innerHTML = `🟢 AUTO MODE ACTIVE - Calling every ${callInterval} seconds`;
+                playSound('soundAuto');
+            }
+        }
+        
+        function stopAuto() {
+            autoMode = false;
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+            document.getElementById('autoStatus').innerHTML = '';
+        }
+        
+        // Admin settings
+        function saveAdminSettings() {
+            maxPlayers = parseInt(document.getElementById('maxPlayers').value);
+            callInterval = parseFloat(document.getElementById('callInterval').value);
+            gameCost = parseInt(document.getElementById('gameCost').value);
+            winMultiplier = parseInt(document.getElementById('winMultiplier').value);
+            adminCommission = parseInt(document.getElementById('commission').value);
+            
+            currentStake = gameCost;
+            document.getElementById('stakeAmount').textContent = currentStake;
+            
+            if (autoMode) {
+                stopAuto();
+                toggleAuto();
+            }
+            
+            showNotification('Admin settings saved!', 'success');
+        }
+        
+        // Reset game
+        function resetGame() {
+            if (confirm('Reset game? This will clear all cards and called numbers.')) {
+                stopAuto();
+                calledNumbers = [];
+                playerCards = [];
+                gameId = 'BINGO' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                document.getElementById('gameId').textContent = gameId;
+                document.getElementById('lastCalled').textContent = '-';
+                document.getElementById('calledCount').textContent = '0';
+                renderCalledList();
+                renderPlayerCards();
+                updateStats();
+                showNotification('Game reset! Buy new cards to play.', 'info');
+            }
+        }
+        
+        function leaveGame() {
+            if (confirm('Leave game?')) {
+                window.location.href = '/dashboard.html';
+            }
+        }
+        
+        function updateWalletDisplay() {
+            document.getElementById('myWallet').textContent = myWallet;
+        }
+        
+        function updateStats() {
+            document.getElementById('gameId').textContent = gameId;
+            document.getElementById('playerCount').textContent = playersOnline;
+            document.getElementById('stakeAmount').textContent = currentStake;
+            document.getElementById('totalPrize').textContent = playersOnline * currentStake;
+        }
+        
+        function showNotification(msg, type) {
+            const statusDiv = document.getElementById('autoStatus');
+            statusDiv.innerHTML = msg;
+            statusDiv.style.color = type === 'error' ? '#ff6b6b' : '#ffd700';
+            setTimeout(() => {
+                if (!autoMode) statusDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // Simulate players joining
+        function simulatePlayers() {
+            setInterval(() => {
+                if (playersOnline < maxPlayers) {
+                    playersOnline++;
+                    updateStats();
+                }
+            }, 30000);
+        }
+        
+        // Initialize
+        checkAdminStatus();
+        updateWalletDisplay();
+        updateStats();
+        simulatePlayers();
+        document.getElementById('gameId').textContent = gameId;
+        
+        // Give starter card
+        setTimeout(() => {
+            if (playerCards.length === 0 && myWallet >= gameCost) {
+                buyCard();
+            }
+        }, 500);
+    </script>
+</body>
+</html>

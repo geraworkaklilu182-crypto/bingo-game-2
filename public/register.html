@@ -182,15 +182,24 @@
                 <input type="email" id="email" placeholder="Enter your email">
             </div>
             
-            <div class="input-group">
-                <label>Password</label>
-                <input type="password" id="password" placeholder="Create a password">
-                <div id="passwordStrength" class="password-strength"></div>
-            </div>
+          <div class="input-group">
+    <label>Password</label>
+    <div style="position: relative;">
+        <input type="password" id="password" placeholder="Create a password" style="width: 100%; padding-right: 40px;">
+        <span onclick="togglePassword('password')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">
+            👁️
+        </span>
+    </div>
+</div>
             
             <div class="input-group">
                 <label>Confirm Password</label>
-                <input type="password" id="confirmPassword" placeholder="Confirm your password">
+                <div style="position: relative;">
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password" style="width: 100%; padding-right: 40px;">
+                    <span onclick="togglePassword('confirmPassword')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">
+                        👁️
+                    </span>
+                </div>
             </div>
             
             <button class="register-btn" onclick="register()">✨ Create Account</button>
@@ -289,6 +298,13 @@
                 register();
             }
         });
+        
+function togglePassword(fieldId) {
+    const input = document.getElementById(fieldId);
+    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', type);
+}
+
     </script>
 </body>
 </html>

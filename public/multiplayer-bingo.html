@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Multiplayer Bingo - DIL BINGO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        /* Main Container - Full Width */
+        .bingo-container {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 5px;
+        }
+
+        /* Navigation Header - Compact */
+        .nav-header {
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            padding: 8px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,215,0,0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        /* Wallet Section - Compact */
+        .wallet-section {
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wallet-card {
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .wallet-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .wallet-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .stake-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 12px;
+            border-radius: 25px;
+        }
+
+        .stake-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .stake-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        /* Cartels Container - 2 Columns on Desktop, 1 on Mobile */
+        .cartels-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Single Cartel Card */
+        .cartel-card {
+            background: rgba(0,0,0,0.6);
+            border-radius: 15px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .cartel-title {
+            font-size: 14px;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Double Card Layout (Left + Right) */
+        .double-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .single-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        .card-label {
+            text-align: center;
+            font-size: 10px;
+            color: #ffd700;
+            margin-bottom: 6px;
+        }
+
+        /* Bingo Grid - Compact */
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .grid-cell.marked {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            transform: scale(0.95);
+        }
+
+        .grid-cell.free {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        .grid-cell:hover:not(.marked):not(.free) {
+            background: rgba(255,215,0,0.3);
+            transform: scale(1.02);
+        }
+
+        /* Column Headers */
+        .col-headers {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            margin-bottom: 5px;
+        }
+
+        .col-letter {
+            text-align: center;
+            font-weight: bold;
+            font-size: 10px;
+            padding: 3px;
+            background: rgba(255,215,0,0.2);
+            border-radius: 4px;
+            color: #ffd700;
+        }
+
+        /* Game Controls - Compact */
+        .game-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .game-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .game-btn.primary {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+
+        .game-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+        }
+
+        .game-btn.secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .game-btn.secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .game-btn.danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        /* Called Numbers Bar */
+        .called-bar {
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .called-title {
+            color: #ffd700;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .called-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 60px;
+            overflow-y: auto;
+        }
+
+        .called-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        /* Message Bar */
+        .message-bar {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 8px;
+            margin-top: 10px;
+            text-align: center;
+            color: #ffd700;
+            font-size: 11px;
+        }
+
+        /* Scrollbar */
+        .called-numbers::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .called-numbers::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+
+        .called-numbers::-webkit-scrollbar-thumb {
+            background: #ffd700;
+            border-radius: 3px;
+        }
+
+        /* Responsive: Tablet */
+        @media (max-width: 900px) {
+            .cartels-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .double-card {
+                gap: 10px;
+            }
+            
+            .grid-cell {
+                font-size: 10px;
+            }
+        }
+
+        /* Responsive: Mobile */
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            
+            .wallet-section {
+                gap: 5px;
+                padding: 8px;
+            }
+            
+            .wallet-amount {
+                font-size: 16px;
+            }
+            
+            .wallet-label {
+                font-size: 8px;
+            }
+            
+            .stake-value {
+                font-size: 14px;
+                min-width: 35px;
+            }
+            
+            .stake-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 14px;
+            }
+            
+            .cartel-card {
+                padding: 8px;
+            }
+            
+            .double-card {
+                gap: 8px;
+            }
+            
+            .single-card {
+                padding: 5px;
+            }
+            
+            .grid-cell {
+                font-size: 9px;
+                border-radius: 4px;
+            }
+            
+            .col-letter {
+                font-size: 8px;
+            }
+            
+            .game-btn {
+                padding: 6px 15px;
+                font-size: 11px;
+            }
+            
+            .cartel-title {
+                font-size: 12px;
+            }
+            
+            .card-label {
+                font-size: 8px;
+            }
+        }
+
+        /* Extra Small */
+        @media (max-width: 480px) {
+            .grid-cell {
+                font-size: 8px;
+            }
+            
+            .col-letter {
+                font-size: 7px;
+            }
+            
+            .nav-btn {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bingo-container">
+        <!-- Navigation Header -->
+        <div class="nav-header">
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showSection('game')">🎮 GAME</button>
+                <button class="nav-btn" onclick="showSection('scores')">🏆 SCORES</button>
+                <button class="nav-btn" onclick="window.location.href='/history.html'">📜 HISTORY</button>
+                <button class="nav-btn" onclick="window.location.href='/wallet.html'">💰 WALLET</button>
+                <button class="nav-btn" onclick="window.location.href='/profile.html'">👤 PROFILE</button>
+            </div>
+            <button class="nav-btn" onclick="goBack()">← BACK</button>
+        </div>
+
+        <!-- Wallet & Stake Section -->
+        <div class="wallet-section">
+            <div class="wallet-card">
+                <div class="wallet-label">💰 MAIN WALLET</div>
+                <div class="wallet-amount" id="mainWallet">2</div>
+            </div>
+            <div class="wallet-card">
+                <div class="wallet-label">🎲 PLAY WALLET</div>
+                <div class="wallet-amount" id="playWallet">72</div>
+            </div>
+            <div class="stake-control">
+                <button class="stake-btn" onclick="changeStake(-10)">-</button>
+                <div class="stake-value" id="stakeAmount">10</div>
+                <button class="stake-btn" onclick="changeStake(10)">+</button>
+            </div>
+            <div class="wallet-card">
+                <div class="wallet-label">🎯 STAKES</div>
+                <div class="wallet-amount" id="stakesCount">33</div>
+            </div>
+        </div>
+
+        <!-- Cartels Container -->
+        <div class="cartels-container" id="cartelsContainer"></div>
+
+        <!-- Game Controls -->
+        <div class="game-controls">
+            <button class="game-btn primary" onclick="callNumber()">🎲 CALL NUMBER</button>
+            <button class="game-btn secondary" onclick="autoCall()">🔄 AUTO</button>
+            <button class="game-btn secondary" onclick="newGame()">🆕 NEW CARDS</button>
+            <button class="game-btn danger" onclick="leaveGame()">🚪 LEAVE</button>
+        </div>
+
+        <!-- Called Numbers Bar -->
+        <div class="called-bar">
+            <div class="called-title">📢 CALLED NUMBERS</div>
+            <div class="called-numbers" id="calledNumbersList"></div>
+        </div>
+
+        <!-- Message Bar -->
+        <div class="message-bar" id="messageBar">
+            እዲስ ኮር እስከጀምር እኩህ ይጠብቁ::
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let calledNumbers = [];
+        let autoMode = false;
+        let autoInterval = null;
+        let mainWallet = 2;
+        let playWallet = 72;
+        let currentStake = 10;
+        let stakesCount = 33;
+        
+        // Cartels data
+        let cartels = [
+            {
+                id: 12,
+                cards: [
+                    {
+                        numbers: [
+                            [12, 16, 38, 49, 66],
+                            [3, 20, 45, 46, 69],
+                            [2, 25, '★', 57, 63],
+                            [9, 28, 40, 58, 70],
+                            [4, 23, 35, 53, 74]
+                        ],
+                        marked: Array(5).fill().map(() => Array(5).fill(false))
+                    },
+                    {
+                        numbers: [
+                            [15, 26, 40, 47, 72],
+                            [1, 20, 34, 48, 71],
+                            [8, 24, '★', 56, 70],
+                            [3, 29, 39, 49, 67],
+                            [2, 21, 31, 54, 65]
+                        ],
+                        marked: Array(5).fill().map(() => Array(5).fill(false))
+                    }
+                ]
+            },
+            {
+                id: 343,
+                cards: [
+                    {
+                        numbers: [
+                            [12, 16, 38, 49, 66],
+                            [3, 20, 45, 46, 69],
+                            [2, 25, '★', 57, 63],
+                            [9, 28, 40, 58, 70],
+                            [4, 23, 35, 53, 74]
+                        ],
+                        marked: Array(5).fill().map(() => Array(5).fill(false))
+                    },
+                    {
+                        numbers: [
+                            [15, 26, 40, 47, 72],
+                            [1, 20, 34, 48, 71],
+                            [8, 24, '★', 56, 70],
+                            [3, 29, 39, 49, 67],
+                            [2, 21, 31, 54, 65]
+                        ],
+                        marked: Array(5).fill().map(() => Array(5).fill(false))
+                    }
+                ]
+            }
+        ];
+        
+        // Initialize marked for free spaces
+        function initMarked() {
+            for (let c = 0; c < cartels.length; c++) {
+                for (let cardIdx = 0; cardIdx < 2; cardIdx++) {
+                    for (let row = 0; row < 5; row++) {
+                        for (let col = 0; col < 5; col++) {
+                            if (cartels[c].cards[cardIdx].numbers[row][col] === '★') {
+                                cartels[c].cards[cardIdx].marked[row][col] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Show message
+        function showMessage(msg, isError = false) {
+            const msgBar = document.getElementById('messageBar');
+            msgBar.innerHTML = msg;
+            msgBar.style.color = isError ? '#ff6b6b' : '#ffd700';
+            setTimeout(() => {
+                msgBar.style.color = '#ffd700';
+            }, 3000);
+        }
+        
+        // Render all cartels
+        function renderCartels() {
+            const container = document.getElementById('cartelsContainer');
+            container.innerHTML = '';
+            
+            for (let c = 0; c < cartels.length; c++) {
+                const cartel = cartels[c];
+                const cartelDiv = document.createElement('div');
+                cartelDiv.className = 'cartel-card';
+                cartelDiv.innerHTML = `
+                    <div class="cartel-title">🎯 CARTEL #${cartel.id}</div>
+                    <div class="double-card">
+                        <div class="single-card">
+                            <div class="card-label">CARD A</div>
+                            ${renderSingleCard(cartel.cards[0], c, 0)}
+                        </div>
+                        <div class="single-card">
+                            <div class="card-label">CARD B</div>
+                            ${renderSingleCard(cartel.cards[1], c, 1)}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(cartelDiv);
+            }
+        }
+        
+        // Render single card HTML
+        function renderSingleCard(card, cartelIdx, cardIdx) {
+            let html = '<div class="col-headers">';
+            const letters = ['B', 'I', 'N', 'G', 'O'];
+            for (let i = 0; i < 5; i++) {
+                html += `<div class="col-letter">${letters[i]}</div>`;
+            }
+            html += '</div><div class="bingo-grid">';
+            
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const num = card.numbers[row][col];
+                    const isMarked = card.marked[row][col];
+                    const isFree = num === '★';
+                    let cellClass = 'grid-cell';
+                    if (isMarked || isFree) cellClass += ' marked';
+                    if (isFree) cellClass += ' free';
+                    
+                    html += `<div class="${cellClass}" onclick="markNumber(${cartelIdx}, ${cardIdx}, ${row}, ${col})">
+                        ${num}
+                    </div>`;
+                }
+            }
+            html += '</div>';
+            return html;
+        }
+        
+        // Mark a number
+        function markNumber(cartelIdx, cardIdx, row, col) {
+            const cartel = cartels[cartelIdx];
+            const card = cartel.cards[cardIdx];
+            const num = card.numbers[row][col];
+            
+            if (num === '★') return;
+            if (card.marked[row][col]) return;
+            
+            if (!calledNumbers.includes(num)) {
+                showMessage(`Number ${num} hasn't been called yet!`, true);
+                return;
+            }
+            
+            card.marked[row][col] = true;
+            renderCartels();
+            
+            if (checkWin(cartelIdx, cardIdx)) {
+                playWallet += currentStake * 2;
+                updateWalletDisplay();
+                showMessage(`🎉 BINGO! You won ${currentStake * 2} coins!`);
+            }
+        }
+        
+        // Call random number
+        function callNumber() {
+            const allNumbers = [];
+            for (let i = 1; i <= 75; i++) {
+                if (!calledNumbers.includes(i)) {
+                    allNumbers.push(i);
+                }
+            }
+            
+            if (allNumbers.length === 0) {
+                showMessage('Game Over! All numbers called!', true);
+                stopAuto();
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * allNumbers.length);
+            const number = allNumbers[randomIndex];
+            calledNumbers.push(number);
+            
+            // Auto-mark if number exists
+            for (let c = 0; c < cartels.length; c++) {
+                for (let cardIdx = 0; cardIdx < 2; cardIdx++) {
+                    for (let row = 0; row < 5; row++) {
+                        for (let col = 0; col < 5; col++) {
+                            const num = cartels[c].cards[cardIdx].numbers[row][col];
+                            if (num === number && !cartels[c].cards[cardIdx].marked[row][col]) {
+                                cartels[c].cards[cardIdx].marked[row][col] = true;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            renderCartels();
+            renderCalledNumbers();
+            
+            // Check wins
+            for (let c = 0; c < cartels.length; c++) {
+                for (let cardIdx = 0; cardIdx < 2; cardIdx++) {
+                    if (checkWin(c, cardIdx)) {
+                        playWallet += currentStake * 2;
+                        updateWalletDisplay();
+                        showMessage(`🎉 BINGO on Cartel #${cartels[c].id}! Won ${currentStake * 2} coins!`);
+                    }
+                }
+            }
+            
+            if (!hasAnyWin()) {
+                stakesCount++;
+                document.getElementById('stakesCount').textContent = stakesCount;
+            }
+            
+            showMessage(`🎲 Number called: ${number}`);
+        }
+        
+        function hasAnyWin() {
+            for (let c = 0; c < cartels.length; c++) {
+                for (let cardIdx = 0; cardIdx < 2; cardIdx++) {
+                    if (checkWin(c, cardIdx)) return true;
+                }
+            }
+            return false;
+        }
+        
+        function checkWin(cartelIdx, cardIdx) {
+            const card = cartels[cartelIdx].cards[cardIdx];
+            
+            for (let row = 0; row < 5; row++) {
+                let rowComplete = true;
+                for (let col = 0; col < 5; col++) {
+                    if (!card.marked[row][col] && card.numbers[row][col] !== '★') {
+                        rowComplete = false;
+                        break;
+                    }
+                }
+                if (rowComplete) return true;
+            }
+            
+            for (let col = 0; col < 5; col++) {
+                let colComplete = true;
+                for (let row = 0; row < 5; row++) {
+                    if (!card.marked[row][col] && card.numbers[row][col] !== '★') {
+                        colComplete = false;
+                        break;
+                    }
+                }
+                if (colComplete) return true;
+            }
+            
+            let diag1 = true;
+            for (let i = 0; i < 5; i++) {
+                if (!card.marked[i][i] && card.numbers[i][i] !== '★') diag1 = false;
+            }
+            if (diag1) return true;
+            
+            let diag2 = true;
+            for (let i = 0; i < 5; i++) {
+                if (!card.marked[i][4 - i] && card.numbers[i][4 - i] !== '★') diag2 = false;
+            }
+            if (diag2) return true;
+            
+            return false;
+        }
+        
+        function renderCalledNumbers() {
+            const container = document.getElementById('calledNumbersList');
+            container.innerHTML = calledNumbers.map(n => 
+                `<span class="called-badge">${n}</span>`
+            ).join('');
+        }
+        
+        function autoCall() {
+            if (autoMode) {
+                stopAuto();
+                showMessage('Auto mode stopped');
+            } else {
+                autoMode = true;
+                autoInterval = setInterval(() => {
+                    if (autoMode) callNumber();
+                }, 2000);
+                showMessage('Auto mode activated! Numbers every 2 seconds');
+            }
+        }
+        
+        function stopAuto() {
+            autoMode = false;
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+        }
+        
+        function changeStake(delta) {
+            let newStake = currentStake + delta;
+            if (newStake >= 10 && newStake <= 200) {
+                currentStake = newStake;
+                document.getElementById('stakeAmount').textContent = currentStake;
+            }
+        }
+        
+        function newGame() {
+            if (playWallet < currentStake) {
+                showMessage('Insufficient play wallet balance!', true);
+                return;
+            }
+            
+            playWallet -= currentStake;
+            updateWalletDisplay();
+            
+            calledNumbers = [];
+            for (let c = 0; c < cartels.length; c++) {
+                for (let cardIdx = 0; cardIdx < 2; cardIdx++) {
+                    cartels[c].cards[cardIdx].marked = Array(5).fill().map(() => Array(5).fill(false));
+                }
+            }
+            initMarked();
+            renderCartels();
+            renderCalledNumbers();
+            showMessage('New game started! Good luck!');
+        }
+        
+        function updateWalletDisplay() {
+            document.getElementById('mainWallet').textContent = mainWallet;
+            document.getElementById('playWallet').textContent = playWallet;
+        }
+        
+        function showSection(section) {
+            if (section === 'scores') {
+                window.location.href = '/history.html';
+            }
+        }
+        
+        function goBack() {
+            window.location.href = '/dashboard.html';
+        }
+        
+        function leaveGame() {
+            if (confirm('Are you sure you want to leave the game?')) {
+                window.location.href = '/dashboard.html';
+            }
+        }
+        
+        // Initialize
+        initMarked();
+        renderCartels();
+        updateWalletDisplay();
+        document.getElementById('stakeAmount').textContent = currentStake;
+        document.getElementById('stakesCount').textContent = stakesCount;
+    </script>
+</body>
+</html>

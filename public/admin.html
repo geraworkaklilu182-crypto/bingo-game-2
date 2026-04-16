@@ -3,29 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>Admin Panel - DIL BINGO</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
         .admin-tabs {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 25px;
+            border-bottom: 2px solid rgba(255,215,0,0.3);
             padding-bottom: 10px;
+            flex-wrap: wrap;
         }
         
         .tab-btn {
             padding: 10px 20px;
-            background: none;
+            background: rgba(255,255,255,0.1);
             border: none;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
+            border-radius: 10px;
+            color: white;
+            transition: all 0.3s;
         }
         
         .tab-btn.active {
-            background: #667eea;
-            color: white;
-            border-radius: 5px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,215,0,0.3);
         }
         
         .tab-content {
@@ -36,40 +66,6 @@
             display: block;
         }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        th {
-            background: #f7fafc;
-            font-weight: bold;
-        }
-        
-        .role-select {
-            padding: 5px;
-            border-radius: 5px;
-        }
-        
-        .delete-btn {
-            background: #f56565;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        .delete-btn:hover {
-            background: #e53e3e;
-        }
-        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -78,56 +74,148 @@
         }
         
         .stat-card {
-            background: #f7fafc;
+            background: rgba(0,0,0,0.5);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 15px;
             text-align: center;
+            border: 1px solid rgba(255,215,0,0.3);
         }
         
         .stat-card h3 {
-            color: #667eea;
+            color: #ffd700;
             margin-bottom: 10px;
+            font-size: 14px;
         }
         
         .stat-card .number {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: bold;
+            color: white;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        th {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .role-select {
+            padding: 5px 10px;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: 1px solid #ffd700;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            padding: 5px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        
+        .save-btn {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .admin-setting {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .admin-setting label {
+            color: #ffd700;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .admin-setting input, .admin-setting select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ffd700;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            margin-right: 10px;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        h3 {
+            color: #ffd700;
+            margin: 20px 0 15px 0;
         }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 1200px;">
+    <div class="container">
         <h1>👑 Admin Panel</h1>
         
+        <!-- Tabs -->
         <div class="admin-tabs">
             <button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
             <button class="tab-btn" onclick="showTab('users')">👥 Users</button>
             <button class="tab-btn" onclick="showTab('games')">🎮 Games</button>
-            <!-- Add this to the admin-tabs section -->
-<button class="tab-btn" onclick="showTab('transactions')">💰 Transactions</button>
-
-<!-- Add this new tab content -->
-<div id="transactions" class="tab-content">
-    <h3>All Transactions</h3>
-    <table id="transactionsTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Description</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+            <button class="tab-btn" onclick="showTab('transactions')">💰 Transactions</button>
+            <button class="tab-btn" onclick="showTab('settings')">⚙️ Settings</button>
+            <button class="tab-btn" onclick="window.location.href='/admin-payments.html'">💰 Payments</button>
         </div>
         
+        <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <div class="stats-grid" id="statsGrid"></div>
-            <h3>Recent Games</h3>
+            <h3>📊 Wallet Statistics</h3>
+            <div class="stats-grid" id="walletStatsGrid">
+                <div class="stat-card"><h3>💰 Total Commission</h3><div class="number" id="totalCommission">0</div></div>
+                <div class="stat-card"><h3>💸 Total Deposits</h3><div class="number" id="totalDeposits">0</div></div>
+                <div class="stat-card"><h3>🏦 Total Withdrawals</h3><div class="number" id="totalWithdrawals">0</div></div>
+            </div>
+            <h3>🎮 Recent Games</h3>
             <table id="recentGames">
                 <thead>
                     <tr><th>Player</th><th>Score</th><th>Result</th><th>Date</th></tr>
@@ -135,25 +223,8 @@
                 <tbody></tbody>
             </table>
         </div>
-        <!-- Add this inside the Dashboard tab, after the stats grid -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">💰</div>
-        <div class="stat-value" id="totalCommission">0</div>
-        <div class="stat-label">Total Commission</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon">💸</div>
-        <div class="stat-value" id="totalDeposits">0</div>
-        <div class="stat-label">Total Deposits</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon">🏦</div>
-        <div class="stat-value" id="totalWithdrawals">0</div>
-        <div class="stat-label">Total Withdrawals</div>
-    </div>
-</div>
         
+        <!-- Users Tab -->
         <div id="users" class="tab-content">
             <table id="usersTable">
                 <thead>
@@ -163,6 +234,7 @@
             </table>
         </div>
         
+        <!-- Games Tab -->
         <div id="games" class="tab-content">
             <table id="gamesTable">
                 <thead>
@@ -172,15 +244,65 @@
             </table>
         </div>
         
-        <button onclick="goToDashboard()" class="btn-secondary" style="margin-top: 20px;">← Back to Dashboard</button>
+        <!-- Transactions Tab -->
+        <div id="transactions" class="tab-content">
+            <table id="transactionsTable">
+                <thead>
+                    <tr><th>ID</th><th>User</th><th>Type</th><th>Amount</th><th>Description</th><th>Date</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="admin-setting">
+                <label>⏱️ Pre-Game Timer (seconds)</label>
+                <input type="number" id="timerSeconds" value="45" min="15" max="120">
+                <button class="save-btn" onclick="updateTimer()">💾 UPDATE TIMER</button>
+            </div>
+
+            <div class="admin-setting">
+    <label>🃏 GAME MANAGEMENT</label>
+    <button class="save-btn" onclick="resetAllCards()" style="background:#dc3545;">🔄 RESET ALL CARDS FOR NEW GAME</button>
+</div>
+            
+            <div class="admin-setting">
+                <label>🎮 GAME TIMER CONTROL</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    <button class="save-btn" onclick="adminForceStart()" style="background: #48bb78;">🎮 FORCE START</button>
+                    <button class="save-btn" onclick="adminPauseTimer()" style="background: #ed8936;">⏸️ PAUSE</button>
+                    <button class="save-btn" onclick="adminResumeTimer()" style="background: #48bb78;">▶️ RESUME</button>
+                    <button class="save-btn" onclick="adminResetTimer()" style="background: #ed8936;">🔄 RESET</button>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="save-btn" onclick="adminSetTimer(30)">⏱️ SET 30s</button>
+                    <button class="save-btn" onclick="adminSetTimer(45)">⏱️ SET 45s</button>
+                    <button class="save-btn" onclick="adminSetTimer(60)">⏱️ SET 60s</button>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>👥 Min Players to Start:</label>
+                    <select id="minPlayersSelect" onchange="adminSetMinPlayers(this.value)">
+                        <option value="2">2 Players</option>
+                        <option value="3">3 Players</option>
+                        <option value="4">4 Players</option>
+                        <option value="5">5 Players</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="goToDashboard()" class="btn-secondary">← Back to Dashboard</button>
     </div>
     
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const socket = io();
+        const API_URL = '/api';
         const token = localStorage.getItem('token');
         
         if (!token) {
-            window.location.href = '/index.html';
+            window.location.href = '/login.html';
         }
         
         function showTab(tabName) {
@@ -211,15 +333,25 @@
                 });
                 const games = await gamesRes.json();
                 
+                // Load wallet stats
+                const walletRes = await fetch(`${API_URL}/admin/wallet-stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const walletStats = await walletRes.json();
+                
+                document.getElementById('totalCommission').textContent = walletStats.totalCommission || 0;
+                document.getElementById('totalDeposits').textContent = walletStats.totalDeposits || 0;
+                document.getElementById('totalWithdrawals').textContent = walletStats.totalWithdrawals || 0;
+                
                 // Update stats
                 const totalUsers = users.length;
                 const totalGames = games.length;
                 const totalScore = games.reduce((sum, g) => sum + (g.score || 0), 0);
                 
                 document.getElementById('statsGrid').innerHTML = `
-                    <div class="stat-card"><h3>Total Users</h3><div class="number">${totalUsers}</div></div>
-                    <div class="stat-card"><h3>Total Games</h3><div class="number">${totalGames}</div></div>
-                    <div class="stat-card"><h3>Total Score</h3><div class="number">${totalScore}</div></div>
+                    <div class="stat-card"><h3>📊 Total Users</h3><div class="number">${totalUsers}</div></div>
+                    <div class="stat-card"><h3>🎮 Total Games</h3><div class="number">${totalGames}</div></div>
+                    <div class="stat-card"><h3>🏆 Total Score</h3><div class="number">${totalScore}</div></div>
                 `;
                 
                 // Users table
@@ -232,7 +364,7 @@
                         <td>${user.total_score || 0}</td>
                         <td>${user.games_played || 0}</td>
                         <td>
-                            <select class="role-select" data-userid="${user.id}" onchange="updateRole(${user.id}, this.value)">
+                            <select class="role-select" onchange="updateRole(${user.id}, this.value)">
                                 <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
                                 <option value="worker" ${user.role === 'worker' ? 'selected' : ''}>Worker</option>
                                 <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
@@ -266,8 +398,38 @@
                     </tr>
                 `).join('');
                 
+                // Load transactions
+                await loadTransactions();
+                
             } catch (error) {
                 console.error('Error loading admin data:', error);
+            }
+        }
+        
+        async function loadTransactions() {
+            try {
+                const response = await fetch(`${API_URL}/admin/transactions`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const transactions = await response.json();
+                
+                const tbody = document.querySelector('#transactionsTable tbody');
+                if (tbody) {
+                    tbody.innerHTML = transactions.map(t => `
+                        <tr>
+                            <td>${t.id}</td>
+                            <td>${t.username}</td>
+                            <td>${t.type.replace('_', ' ').toUpperCase()}</td>
+                            <td style="color: ${t.type === 'deposit' || t.type === 'game_win' ? '#48bb78' : t.type === 'withdraw' || t.type === 'game_loss' ? '#f56565' : '#ffd700'}">
+                                ${t.type === 'deposit' || t.type === 'game_win' ? '+' : '-'} ${t.amount}
+                            </td>
+                            <td>${t.description || '-'}</td>
+                            <td>${new Date(t.created_at).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
             }
         }
         
@@ -284,9 +446,9 @@
                 
                 if (response.ok) {
                     alert('Role updated successfully');
+                    loadAdminData();
                 } else {
                     alert('Failed to update role');
-                    loadAdminData();
                 }
             } catch (error) {
                 console.error('Error updating role:', error);
@@ -312,37 +474,113 @@
                 }
             }
         }
-        async function loadTransactions() {
-    try {
-        const response = await fetch(`${API_URL}/admin/transactions`, {
+        
+        async function updateTimer() {
+            const timerSeconds = document.getElementById('timerSeconds').value;
+            const response = await fetch(`${API_URL}/admin/timer-settings`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ timerSeconds: parseInt(timerSeconds) })
+            });
+            
+            const data = await response.json();
+            alert(data.message);
+        }
+        
+        async function loadTimerSettings() {
+            const response = await fetch(`${API_URL}/admin/timer-settings`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            document.getElementById('timerSeconds').value = data.timerSeconds;
+        }
+        async function loadTimerSettings() {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/admin/timer-settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    document.getElementById('timerSeconds').value = data.timerSeconds;
+}
+
+// ========== PASTE resetAllCards HERE ==========
+async function resetAllCards() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Not logged in');
+        return;
+    }
+    
+    if (confirm('⚠️ This will clear ALL cards and reset the game. Are you sure?')) {
+        const response = await fetch('/api/game-session/admin/clear-all-cards', {
+            method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const transactions = await response.json();
-        
-        const tbody = document.querySelector('#transactionsTable tbody');
-        tbody.innerHTML = transactions.map(t => `
-            <tr>
-                <td>${t.id}</td>
-                <td>${t.username}</td>
-                <td>${t.type.replace('_', ' ').toUpperCase()}</td>
-                <td style="color: ${t.type === 'deposit' || t.type === 'game_win' ? 'green' : t.type === 'withdraw' || t.type === 'game_loss' ? 'red' : 'orange'}">
-                    ${t.type === 'deposit' || t.type === 'game_win' ? '+' : '-'} ${t.amount}
-                </td>
-                <td>${t.description || '-'}</td>
-                <td>${new Date(t.created_at).toLocaleString()}</td>
-            </tr>
-        `).join('');
-        
-    } catch (error) {
-        console.error('Error loading transactions:', error);
+        const data = await response.json();
+        alert(data.message || 'All cards cleared for new game');
+        location.reload();
     }
 }
+// ========== END resetAllCards ==========
+
+// Admin timer control functions
+function adminForceStart() {
+    // ... existing code ...
+}
+        
+        function getCurrentGameId() {
+            return localStorage.getItem('currentGameId') || 'DIL_DEFAULT';
+        }
+        
+        function adminForceStart() {
+            const gameId = getCurrentGameId();
+            socket.emit('admin-force-start', { gameId: gameId });
+            alert('Force starting game...');
+        }
+        
+        function adminPauseTimer() {
+            const gameId = getCurrentGameId();
+            socket.emit('admin-pause-timer', { gameId: gameId });
+            alert('Timer paused');
+        }
+        
+        function adminResumeTimer() {
+            const gameId = getCurrentGameId();
+            socket.emit('admin-resume-timer', { gameId: gameId });
+            alert('Timer resumed');
+        }
+        
+        function adminResetTimer() {
+            const gameId = getCurrentGameId();
+            const seconds = prompt('Enter timer seconds (15-120):', '45');
+            if (seconds && seconds >= 15 && seconds <= 120) {
+                socket.emit('admin-reset-timer', { gameId: gameId, seconds: parseInt(seconds) });
+                alert(`Timer reset to ${seconds} seconds`);
+            }
+        }
+        
+        function adminSetTimer(seconds) {
+            const gameId = getCurrentGameId();
+            socket.emit('admin-reset-timer', { gameId: gameId, seconds: seconds });
+            alert(`Timer set to ${seconds} seconds`);
+        }
+        
+        function adminSetMinPlayers(value) {
+            const gameId = getCurrentGameId();
+            socket.emit('admin-set-min-players', { gameId: gameId, minPlayers: parseInt(value) });
+            alert(`Minimum players set to ${value}`);
+        }
         
         function goToDashboard() {
             window.location.href = '/dashboard.html';
         }
         
+        // Initialize
         loadAdminData();
+        loadTimerSettings();
     </script>
 </body>
 </html>
