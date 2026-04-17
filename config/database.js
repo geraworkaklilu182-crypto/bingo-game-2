@@ -8,10 +8,10 @@ const initDB = async () => {
     // Use DATABASE_URL from environment (Render provides this) or local connection
     const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/bingo_game';
     
-    pool = new Pool({
-      connectionString: connectionString,
-      ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
-    });
+   pool = new Pool({
+  connectionString: connectionString,
+  ssl: false
+});
     
     // Create tables
     await pool.query(`
