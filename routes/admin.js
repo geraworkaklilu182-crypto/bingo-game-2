@@ -16,7 +16,8 @@ const verifyAdmin = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const db = getDB();
     
-    const user = await db.get('SELECT role FROM users WHERE id = ?', [decoded.id]);
+    const result = await db.query('SELECT role FROM users WHERE id = $1', [decoded.id]);
+    const user = result.rows[0];
     
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ message: 'Admin access required' });
@@ -35,10 +36,10 @@ const verifyAdmin = async (req, res, next) => {
 router.get('/users', verifyAdmin, async (req, res) => {
   try {
     const db = getDB();
-    const users = await db.all(
+    const result = await db.query(
       'SELECT id, username, email, total_score, games_played, games_won, role, created_at FROM users ORDER BY id'
     );
-    res.json(users);
+    res.json(result.rows);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Server error' });
@@ -56,7 +57,7 @@ router.put('/users/:id/role', verifyAdmin, async (req, res) => {
       return res.status(400).json({ message: 'Invalid role' });
     }
     
-    await db.run('UPDATE users SET role = ? WHERE id = ?', [role, userId]);
+    await db.query('UPDATE users SET role = $1 WHERE id = $2', [role, userId]);
     res.json({ message: 'User role updated successfully' });
   } catch (error) {
     console.error('Error updating role:', error);
@@ -70,8 +71,8 @@ router.delete('/users/:id', verifyAdmin, async (req, res) => {
     const userId = req.params.id;
     const db = getDB();
     
-    await db.run('DELETE FROM games WHERE user_id = ?', [userId]);
-    await db.run('DELETE FROM users WHERE id = ?', [userId]);
+    await db.query('DELETE FROM games WHERE user_id = $1', [userId]);
+    await db.query('DELETE FROM users WHERE id = $1', [userId]);
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('Error deleting user:', error);
@@ -85,14 +86,14 @@ router.delete('/users/:id', verifyAdmin, async (req, res) => {
 router.get('/games', verifyAdmin, async (req, res) => {
   try {
     const db = getDB();
-    const games = await db.all(
+    const result = await db.query(
       `SELECT g.*, u.username 
        FROM games g 
        JOIN users u ON g.user_id = u.id 
        ORDER BY g.created_at DESC 
        LIMIT 50`
     );
-    res.json(games);
+    res.json(result.rows);
   } catch (error) {
     console.error('Error fetching games:', error);
     res.status(500).json({ message: 'Server error' });
@@ -107,24 +108,27 @@ router.get('/wallet-stats', verifyAdmin, async (req, res) => {
     const db = getDB();
     
     // Get total commission
-    const commission = await db.get(
-      'SELECT SUM(amount) as total FROM transactions WHERE type = "commission"'
+    const commissionResult = await db.query(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = $1',
+      ['commission']
     );
     
     // Get total deposits
-    const deposits = await db.get(
-      'SELECT SUM(amount) as total FROM transactions WHERE type = "deposit"'
+    const depositsResult = await db.query(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = $1',
+      ['deposit']
     );
     
     // Get total withdrawals
-    const withdrawals = await db.get(
-      'SELECT SUM(amount) as total FROM transactions WHERE type = "withdraw"'
+    const withdrawalsResult = await db.query(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = $1',
+      ['withdraw']
     );
     
     res.json({
-      totalCommission: commission?.total || 0,
-      totalDeposits: deposits?.total || 0,
-      totalWithdrawals: withdrawals?.total || 0
+      totalCommission: commissionResult.rows[0]?.total || 0,
+      totalDeposits: depositsResult.rows[0]?.total || 0,
+      totalWithdrawals: withdrawalsResult.rows[0]?.total || 0
     });
     
   } catch (error) {
@@ -137,14 +141,14 @@ router.get('/wallet-stats', verifyAdmin, async (req, res) => {
 router.get('/transactions', verifyAdmin, async (req, res) => {
   try {
     const db = getDB();
-    const transactions = await db.all(
+    const result = await db.query(
       `SELECT t.*, u.username 
        FROM transactions t 
        JOIN users u ON t.user_id = u.id 
        ORDER BY t.created_at DESC 
        LIMIT 100`
     );
-    res.json(transactions);
+    res.json(result.rows);
   } catch (error) {
     console.error('Error getting transactions:', error);
     res.status(500).json({ message: 'Server error' });
@@ -157,23 +161,23 @@ router.get('/user-wallet/:userId', verifyAdmin, async (req, res) => {
     const { userId } = req.params;
     const db = getDB();
     
-    const wallet = await db.get(
-      'SELECT balance FROM wallet WHERE user_id = ?',
+    const walletResult = await db.query(
+      'SELECT balance FROM wallet WHERE user_id = $1',
       [userId]
     );
     
-    const transactions = await db.all(
+    const transactionsResult = await db.query(
       `SELECT type, amount, description, created_at 
        FROM transactions 
-       WHERE user_id = ? 
+       WHERE user_id = $1 
        ORDER BY created_at DESC 
        LIMIT 20`,
       [userId]
     );
     
     res.json({
-      balance: wallet?.balance || 0,
-      transactions
+      balance: walletResult.rows[0]?.balance || 0,
+      transactions: transactionsResult.rows
     });
     
   } catch (error) {
@@ -193,16 +197,16 @@ router.post('/adjust-balance', verifyAdmin, async (req, res) => {
     }
     
     // Update balance
-    await db.run(
-      'UPDATE wallet SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?',
+    await db.query(
+      'UPDATE wallet SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
       [amount, userId]
     );
     
     // Record transaction
     const type = amount > 0 ? 'deposit' : 'withdraw';
-    await db.run(
+    await db.query(
       `INSERT INTO transactions (user_id, type, amount, description) 
-       VALUES (?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4)`,
       [userId, type, Math.abs(amount), `Admin adjustment: ${reason}`]
     );
     
@@ -223,8 +227,8 @@ router.post('/adjust-balance', verifyAdmin, async (req, res) => {
 router.get('/timer-settings', async (req, res) => {
     try {
         const db = getDB();
-        const setting = await db.get('SELECT timer_seconds FROM settings WHERE id = 1');
-        res.json({ timerSeconds: setting?.timer_seconds || 45 });
+        const result = await db.query('SELECT timer_seconds FROM settings WHERE id = 1');
+        res.json({ timerSeconds: result.rows[0]?.timer_seconds || 45 });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -235,7 +239,7 @@ router.put('/timer-settings', verifyAdmin, async (req, res) => {
     try {
         const { timerSeconds } = req.body;
         const db = getDB();
-        await db.run('UPDATE settings SET timer_seconds = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1', [timerSeconds]);
+        await db.query('UPDATE settings SET timer_seconds = $1, updated_at = CURRENT_TIMESTAMP WHERE id = 1', [timerSeconds]);
         res.json({ message: 'Timer settings updated', timerSeconds });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
@@ -244,31 +248,31 @@ router.put('/timer-settings', verifyAdmin, async (req, res) => {
 
 // ============ SESSION & CARD MANAGEMENT ============
 
-// Get taken cards for current session (ADMIN ONLY - FIXED)
+// Get taken cards for current session (ADMIN ONLY)
 router.get('/taken-cards/:sessionId', verifyAdmin, async (req, res) => {
     try {
         const { sessionId } = req.params;
         const db = getDB();
-        const cards = await db.all('SELECT card_number, player_name FROM session_cards WHERE session_id = ?', [sessionId]);
-        res.json({ takenCards: cards.map(c => c.card_number) });
+        const result = await db.query('SELECT card_number, player_name FROM session_cards WHERE session_id = $1', [sessionId]);
+        res.json({ takenCards: result.rows.map(c => c.card_number) });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
 });
 
-// Take a card (ADMIN ONLY - FIXED)
+// Take a card (ADMIN ONLY)
 router.post('/take-card', verifyAdmin, async (req, res) => {
     try {
         const { sessionId, cardNumber, playerName } = req.body;
         const db = getDB();
         
         // Check if card is already taken
-        const existing = await db.get('SELECT * FROM session_cards WHERE session_id = ? AND card_number = ?', [sessionId, cardNumber]);
-        if (existing) {
+        const existingResult = await db.query('SELECT * FROM session_cards WHERE session_id = $1 AND card_number = $2', [sessionId, cardNumber]);
+        if (existingResult.rows.length > 0) {
             return res.status(400).json({ message: 'Card already taken!' });
         }
         
-        await db.run('INSERT INTO session_cards (session_id, card_number, player_name) VALUES (?, ?, ?)', 
+        await db.query('INSERT INTO session_cards (session_id, card_number, player_name) VALUES ($1, $2, $3)', 
             [sessionId, cardNumber, playerName]);
         
         res.json({ success: true, message: 'Card taken successfully' });
@@ -276,17 +280,18 @@ router.post('/take-card', verifyAdmin, async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
 // Winner settings
 router.get('/winner-settings', verifyAdmin, async (req, res) => {
     const db = getDB();
-    const setting = await db.get('SELECT single_winner, multiple_winners_threshold FROM settings WHERE id = 1');
-    res.json(setting || { single_winner: 1, multiple_winners_threshold: 50 });
+    const result = await db.query('SELECT single_winner, multiple_winners_threshold FROM settings WHERE id = 1');
+    res.json(result.rows[0] || { single_winner: 1, multiple_winners_threshold: 50 });
 });
 
 router.put('/winner-settings', verifyAdmin, async (req, res) => {
     const { single_winner, multiple_winners_threshold } = req.body;
     const db = getDB();
-    await db.run('UPDATE settings SET single_winner = ?, multiple_winners_threshold = ? WHERE id = 1', 
+    await db.query('UPDATE settings SET single_winner = $1, multiple_winners_threshold = $2 WHERE id = 1', 
         [single_winner, multiple_winners_threshold]);
     res.json({ success: true });
 });

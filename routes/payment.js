@@ -46,11 +46,7 @@ const upload = multer({
 // Middleware to verify token
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
-    }
-    
+    if (!token) return res.status(401).json({ message: 'No token provided' });
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.userId = decoded.id;
@@ -63,20 +59,15 @@ const verifyToken = (req, res, next) => {
 // Admin middleware
 const verifyAdmin = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
-    }
-    
+    if (!token) return res.status(401).json({ message: 'No token provided' });
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const db = getDB();
-        const user = await db.get('SELECT role FROM users WHERE id = ?', [decoded.id]);
-        
+        const result = await db.query('SELECT role FROM users WHERE id = $1', [decoded.id]);
+        const user = result.rows[0];
         if (!user || user.role !== 'admin') {
             return res.status(403).json({ message: 'Admin access required' });
         }
-        
         req.userId = decoded.id;
         next();
     } catch (error) {
@@ -129,18 +120,18 @@ router.post('/deposit-request', verifyToken, upload.single('screenshot'), async 
         
         const screenshotUrl = '/uploads/' + req.file.filename;
         
-        const result = await db.run(
+        const result = await db.query(
             `INSERT INTO deposit_requests (user_id, amount, telebirr_number, screenshot_url, status, transaction_id)
-             VALUES (?, ?, ?, ?, 'pending', ?)`,
+             VALUES ($1, $2, $3, $4, 'pending', $5) RETURNING id`,
             [userId, amount, telebirr_number, screenshotUrl, transactionId]
         );
         
-        console.log('Deposit request saved, ID:', result.lastID);
+        console.log('Deposit request saved, ID:', result.rows[0].id);
         
         res.json({
             success: true,
             message: 'Deposit request submitted! Admin will review and approve within 24 hours.',
-            requestId: result.lastID
+            requestId: result.rows[0].id
         });
         
     } catch (error) {
@@ -170,25 +161,25 @@ router.post('/withdrawal-request', verifyToken, async (req, res) => {
         }
         
         // Check user balance
-        const wallet = await db.get('SELECT balance FROM wallet WHERE user_id = ?', [userId]);
+        const walletResult = await db.query('SELECT balance FROM wallet WHERE user_id = $1', [userId]);
         
-        if (!wallet || wallet.balance < amount) {
+        if (!walletResult.rows[0] || walletResult.rows[0].balance < amount) {
             return res.status(400).json({ message: 'Insufficient balance' });
         }
         
         // Generate unique transaction ID
         const transactionId = 'WIT_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
         
-        const result = await db.run(
+        const result = await db.query(
             `INSERT INTO withdrawal_requests (user_id, amount, telebirr_number, status, transaction_id)
-             VALUES (?, ?, ?, 'pending', ?)`,
+             VALUES ($1, $2, $3, 'pending', $4) RETURNING id`,
             [userId, amount, telebirr_number, transactionId]
         );
         
         res.json({
             success: true,
             message: 'Withdrawal request submitted! Admin will process within 24 hours.',
-            requestId: result.lastID
+            requestId: result.rows[0].id
         });
         
     } catch (error) {
@@ -203,15 +194,15 @@ router.get('/my-deposits', verifyToken, async (req, res) => {
         const userId = req.userId;
         const db = getDB();
         
-        const deposits = await db.all(
+        const result = await db.query(
             `SELECT id, amount, status, screenshot_url, created_at, approved_at
              FROM deposit_requests
-             WHERE user_id = ?
+             WHERE user_id = $1
              ORDER BY created_at DESC`,
             [userId]
         );
         
-        res.json(deposits);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching deposits:', error);
         res.status(500).json({ message: 'Server error' });
@@ -224,15 +215,15 @@ router.get('/my-withdrawals', verifyToken, async (req, res) => {
         const userId = req.userId;
         const db = getDB();
         
-        const withdrawals = await db.all(
+        const result = await db.query(
             `SELECT id, amount, status, created_at, completed_at
              FROM withdrawal_requests
-             WHERE user_id = ?
+             WHERE user_id = $1
              ORDER BY created_at DESC`,
             [userId]
         );
         
-        res.json(withdrawals);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching withdrawals:', error);
         res.status(500).json({ message: 'Server error' });
@@ -246,7 +237,7 @@ router.get('/admin/pending-deposits', verifyAdmin, async (req, res) => {
     try {
         const db = getDB();
         
-        const deposits = await db.all(
+        const result = await db.query(
             `SELECT d.*, u.username, u.email
              FROM deposit_requests d
              JOIN users u ON d.user_id = u.id
@@ -254,7 +245,7 @@ router.get('/admin/pending-deposits', verifyAdmin, async (req, res) => {
              ORDER BY d.created_at ASC`
         );
         
-        res.json(deposits);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching pending deposits:', error);
         res.status(500).json({ message: 'Server error' });
@@ -266,7 +257,7 @@ router.get('/admin/pending-withdrawals', verifyAdmin, async (req, res) => {
     try {
         const db = getDB();
         
-        const withdrawals = await db.all(
+        const result = await db.query(
             `SELECT w.*, u.username, u.email
              FROM withdrawal_requests w
              JOIN users u ON w.user_id = u.id
@@ -274,7 +265,7 @@ router.get('/admin/pending-withdrawals', verifyAdmin, async (req, res) => {
              ORDER BY w.created_at ASC`
         );
         
-        res.json(withdrawals);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching pending withdrawals:', error);
         res.status(500).json({ message: 'Server error' });
@@ -289,34 +280,35 @@ router.post('/admin/approve-deposit/:id', verifyAdmin, async (req, res) => {
         const db = getDB();
         
         // Get deposit request
-        const deposit = await db.get(
-            'SELECT * FROM deposit_requests WHERE id = ? AND status = "pending"',
-            [depositId]
+        const depositResult = await db.query(
+            'SELECT * FROM deposit_requests WHERE id = $1 AND status = $2',
+            [depositId, 'pending']
         );
+        
+        const deposit = depositResult.rows[0];
         
         if (!deposit) {
             return res.status(404).json({ message: 'Deposit request not found or already processed' });
         }
         
         // Update deposit status
-        await db.run(
+        await db.query(
             `UPDATE deposit_requests 
-             SET status = 'approved', admin_notes = ?, approved_at = CURRENT_TIMESTAMP
-             WHERE id = ?`,
+             SET status = 'approved', admin_notes = $1, approved_at = CURRENT_TIMESTAMP
+             WHERE id = $2`,
             [admin_notes || 'Approved by admin', depositId]
         );
         
         // Add coins to user's wallet
-        await db.run(
-            `UPDATE wallet SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP
-             WHERE user_id = ?`,
+        await db.query(
+            'UPDATE wallet SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
             [deposit.amount, deposit.user_id]
         );
         
         // Record transaction
-        await db.run(
+        await db.query(
             `INSERT INTO transactions (user_id, type, amount, description)
-             VALUES (?, 'deposit', ?, ?)`,
+             VALUES ($1, 'deposit', $2, $3)`,
             [deposit.user_id, deposit.amount, `Deposit approved - Request #${depositId}`]
         );
         
@@ -335,10 +327,10 @@ router.post('/admin/reject-deposit/:id', verifyAdmin, async (req, res) => {
         const { admin_notes } = req.body;
         const db = getDB();
         
-        await db.run(
+        await db.query(
             `UPDATE deposit_requests 
-             SET status = 'rejected', admin_notes = ?
-             WHERE id = ?`,
+             SET status = 'rejected', admin_notes = $1
+             WHERE id = $2`,
             [admin_notes || 'Rejected by admin', depositId]
         );
         
@@ -358,41 +350,42 @@ router.post('/admin/complete-withdrawal/:id', verifyAdmin, async (req, res) => {
         const db = getDB();
         
         // Get withdrawal request
-        const withdrawal = await db.get(
-            'SELECT * FROM withdrawal_requests WHERE id = ? AND status = "pending"',
-            [withdrawalId]
+        const withdrawalResult = await db.query(
+            'SELECT * FROM withdrawal_requests WHERE id = $1 AND status = $2',
+            [withdrawalId, 'pending']
         );
+        
+        const withdrawal = withdrawalResult.rows[0];
         
         if (!withdrawal) {
             return res.status(404).json({ message: 'Withdrawal request not found or already processed' });
         }
         
         // Check user balance again
-        const wallet = await db.get('SELECT balance FROM wallet WHERE user_id = ?', [withdrawal.user_id]);
+        const walletResult = await db.query('SELECT balance FROM wallet WHERE user_id = $1', [withdrawal.user_id]);
         
-        if (!wallet || wallet.balance < withdrawal.amount) {
+        if (!walletResult.rows[0] || walletResult.rows[0].balance < withdrawal.amount) {
             return res.status(400).json({ message: 'Insufficient balance' });
         }
         
         // Update withdrawal status
-        await db.run(
+        await db.query(
             `UPDATE withdrawal_requests 
-             SET status = 'completed', admin_notes = ?, completed_at = CURRENT_TIMESTAMP
-             WHERE id = ?`,
+             SET status = 'completed', admin_notes = $1, completed_at = CURRENT_TIMESTAMP
+             WHERE id = $2`,
             [admin_notes || 'Processed by admin', withdrawalId]
         );
         
         // Deduct coins from user's wallet
-        await db.run(
-            `UPDATE wallet SET balance = balance - ?, updated_at = CURRENT_TIMESTAMP
-             WHERE user_id = ?`,
+        await db.query(
+            'UPDATE wallet SET balance = balance - $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
             [withdrawal.amount, withdrawal.user_id]
         );
         
         // Record transaction
-        await db.run(
+        await db.query(
             `INSERT INTO transactions (user_id, type, amount, description)
-             VALUES (?, 'withdraw', ?, ?)`,
+             VALUES ($1, 'withdraw', $2, $3)`,
             [withdrawal.user_id, withdrawal.amount, `Withdrawal processed - Request #${withdrawalId}`]
         );
         
@@ -411,10 +404,10 @@ router.post('/admin/reject-withdrawal/:id', verifyAdmin, async (req, res) => {
         const { admin_notes } = req.body;
         const db = getDB();
         
-        await db.run(
+        await db.query(
             `UPDATE withdrawal_requests 
-             SET status = 'rejected', admin_notes = ?
-             WHERE id = ?`,
+             SET status = 'rejected', admin_notes = $1
+             WHERE id = $2`,
             [admin_notes || 'Rejected by admin', withdrawalId]
         );
         
@@ -431,7 +424,7 @@ router.get('/admin/all-deposits', verifyAdmin, async (req, res) => {
     try {
         const db = getDB();
         
-        const deposits = await db.all(
+        const result = await db.query(
             `SELECT d.*, u.username, u.email
              FROM deposit_requests d
              JOIN users u ON d.user_id = u.id
@@ -439,7 +432,7 @@ router.get('/admin/all-deposits', verifyAdmin, async (req, res) => {
              LIMIT 100`
         );
         
-        res.json(deposits);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching deposits:', error);
         res.status(500).json({ message: 'Server error' });
@@ -451,7 +444,7 @@ router.get('/admin/all-withdrawals', verifyAdmin, async (req, res) => {
     try {
         const db = getDB();
         
-        const withdrawals = await db.all(
+        const result = await db.query(
             `SELECT w.*, u.username, u.email
              FROM withdrawal_requests w
              JOIN users u ON w.user_id = u.id
@@ -459,7 +452,7 @@ router.get('/admin/all-withdrawals', verifyAdmin, async (req, res) => {
              LIMIT 100`
         );
         
-        res.json(withdrawals);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching withdrawals:', error);
         res.status(500).json({ message: 'Server error' });

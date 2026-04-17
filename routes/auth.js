@@ -16,24 +16,30 @@ router.post('/register', async (req, res) => {
     
     const db = getDB();
     
-    const existingUser = await db.get(
-      'SELECT * FROM users WHERE username = ? OR email = ?',
+    // Check if user exists
+    const existingUser = await db.query(
+      'SELECT * FROM users WHERE username = $1 OR email = $2',
       [username, email]
     );
     
-    if (existingUser) {
+    if (existingUser.rows.length > 0) {
       return res.status(400).json({ message: 'Username or email already exists' });
     }
     
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    const result = await db.run(
-      'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+    // Create user
+    const result = await db.query(
+      'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id',
       [username, email, hashedPassword]
     );
     
+    const userId = result.rows[0].id;
+    
+    // Create token
     const token = jwt.sign(
-      { id: result.lastID, username, role: 'user' },
+      { id: userId, username, role: 'user' },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -41,7 +47,7 @@ router.post('/register', async (req, res) => {
     res.status(201).json({
       message: 'User created successfully',
       token,
-      user: { id: result.lastID, username, email, role: 'user' }
+      user: { id: userId, username, email, role: 'user' }
     });
     
   } catch (error) {
@@ -61,21 +67,26 @@ router.post('/login', async (req, res) => {
     
     const db = getDB();
     
-    const user = await db.get(
-      'SELECT * FROM users WHERE username = ? OR email = ?',
-      [username, username]
+    // Find user
+    const result = await db.query(
+      'SELECT * FROM users WHERE username = $1 OR email = $1',
+      [username]
     );
+    
+    const user = result.rows[0];
     
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     
+    // Check password
     const validPassword = await bcrypt.compare(password, user.password_hash);
     
     if (!validPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     
+    // Create token
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       process.env.JWT_SECRET,
@@ -114,10 +125,13 @@ router.get('/me', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const db = getDB();
     
-    const user = await db.get(
-      'SELECT id, username, email, total_score, games_played, games_won, role, created_at FROM users WHERE id = ?',
+    const result = await db.query(
+      `SELECT id, username, email, total_score, games_played, games_won, role, created_at 
+       FROM users WHERE id = $1`,
       [decoded.id]
     );
+    
+    const user = result.rows[0];
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

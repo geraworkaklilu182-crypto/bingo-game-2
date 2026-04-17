@@ -29,24 +29,53 @@ router.put('/update', verifyToken, async (req, res) => {
     const userId = req.userId;
     const db = getDB();
     
-    let updateQuery = 'UPDATE users SET username = ?, email = ?';
+    let updateQuery = 'UPDATE users SET username = $1, email = $2';
     const params = [username, email];
     
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
-      updateQuery += ', password_hash = ?';
+      updateQuery += ', password_hash = $3';
       params.push(hashedPassword);
     }
     
-    updateQuery += ' WHERE id = ?';
+    updateQuery += ' WHERE id = $' + (params.length + 1);
     params.push(userId);
     
-    await db.run(updateQuery, params);
+    await db.query(updateQuery, params);
     
     res.json({ message: 'Profile updated successfully' });
     
   } catch (error) {
     console.error('Update error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get user profile
+router.get('/profile', verifyToken, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const db = getDB();
+    
+    const result = await db.query(
+      'SELECT id, username, email, total_score, games_played, games_won, role, created_at FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    const user = result.rows[0];
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Get wallet balance
+    const walletResult = await db.query('SELECT balance FROM wallet WHERE user_id = $1', [userId]);
+    user.balance = walletResult.rows[0]?.balance || 0;
+    
+    res.json(user);
+    
+  } catch (error) {
+    console.error('Profile error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

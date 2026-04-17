@@ -25,12 +25,12 @@ const verifyToken = (req, res, next) => {
 router.get('/balance', verifyToken, async (req, res) => {
   try {
     const db = getDB();
-    const wallet = await db.get(
-      'SELECT balance FROM wallet WHERE user_id = ?',
+    const result = await db.query(
+      'SELECT balance FROM wallet WHERE user_id = $1',
       [req.userId]
     );
     
-    res.json({ balance: wallet?.balance || 0 });
+    res.json({ balance: result.rows[0]?.balance || 0 });
   } catch (error) {
     console.error('Error getting balance:', error);
     res.status(500).json({ message: 'Server error' });
@@ -52,27 +52,28 @@ router.post('/deposit', verifyToken, async (req, res) => {
     }
     
     // Update wallet
-    await db.run(
-      'UPDATE wallet SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?',
+    await db.query(
+      'UPDATE wallet SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
       [amount, req.userId]
     );
     
     // Record transaction
-    await db.run(
-      'INSERT INTO transactions (user_id, type, amount, description) VALUES (?, ?, ?, ?)',
-      [req.userId, 'deposit', amount, `Deposited ${amount} coins`]
+    await db.query(
+      `INSERT INTO transactions (user_id, type, amount, description) 
+       VALUES ($1, 'deposit', $2, $3)`,
+      [req.userId, amount, `Deposited ${amount} coins`]
     );
     
     // Get new balance
-    const wallet = await db.get(
-      'SELECT balance FROM wallet WHERE user_id = ?',
+    const result = await db.query(
+      'SELECT balance FROM wallet WHERE user_id = $1',
       [req.userId]
     );
     
     res.json({ 
       success: true, 
       message: `Successfully deposited ${amount} coins!`,
-      balance: wallet.balance 
+      balance: result.rows[0].balance 
     });
     
   } catch (error) {
@@ -92,37 +93,38 @@ router.post('/withdraw', verifyToken, async (req, res) => {
     }
     
     // Check current balance
-    const wallet = await db.get(
-      'SELECT balance FROM wallet WHERE user_id = ?',
+    const walletResult = await db.query(
+      'SELECT balance FROM wallet WHERE user_id = $1',
       [req.userId]
     );
     
-    if (!wallet || wallet.balance < amount) {
+    if (!walletResult.rows[0] || walletResult.rows[0].balance < amount) {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
     
     // Update wallet
-    await db.run(
-      'UPDATE wallet SET balance = balance - ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?',
+    await db.query(
+      'UPDATE wallet SET balance = balance - $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
       [amount, req.userId]
     );
     
     // Record transaction
-    await db.run(
-      'INSERT INTO transactions (user_id, type, amount, description) VALUES (?, ?, ?, ?)',
-      [req.userId, 'withdraw', amount, `Withdrew ${amount} coins`]
+    await db.query(
+      `INSERT INTO transactions (user_id, type, amount, description) 
+       VALUES ($1, 'withdraw', $2, $3)`,
+      [req.userId, amount, `Withdrew ${amount} coins`]
     );
     
     // Get new balance
-    const newWallet = await db.get(
-      'SELECT balance FROM wallet WHERE user_id = ?',
+    const newWalletResult = await db.query(
+      'SELECT balance FROM wallet WHERE user_id = $1',
       [req.userId]
     );
     
     res.json({ 
       success: true, 
       message: `Successfully withdrew ${amount} coins!`,
-      balance: newWallet.balance 
+      balance: newWalletResult.rows[0].balance 
     });
     
   } catch (error) {
@@ -135,16 +137,16 @@ router.post('/withdraw', verifyToken, async (req, res) => {
 router.get('/transactions', verifyToken, async (req, res) => {
   try {
     const db = getDB();
-    const transactions = await db.all(
+    const result = await db.query(
       `SELECT id, type, amount, description, created_at 
        FROM transactions 
-       WHERE user_id = ? 
+       WHERE user_id = $1 
        ORDER BY created_at DESC 
        LIMIT 50`,
       [req.userId]
     );
     
-    res.json(transactions);
+    res.json(result.rows);
   } catch (error) {
     console.error('Error getting transactions:', error);
     res.status(500).json({ message: 'Server error' });
