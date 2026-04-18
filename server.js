@@ -28,6 +28,18 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+// TEMPORARY - Make gera admin (REMOVE AFTER USE)
+app.get('/make-admin', async (req, res) => {
+    const { getDB } = require('./config/database');
+    const db = getDB();
+    try {
+        await db.query("UPDATE users SET role = 'admin' WHERE username = 'gera'");
+        res.send('<h1>✅ gera is now an admin!</h1><p>Go to <a href="/admin.html">/admin.html</a></p>');
+    } catch (error) {
+        res.send(`<h1>❌ Error: ${error.message}</h1>`);
+    }
+});
+
 // Start server function
 const startServer = async () => {
   try {
