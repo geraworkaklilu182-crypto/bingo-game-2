@@ -57,6 +57,7 @@ const startServer = async () => {
     app.use('/api/timer', require('./routes/admin-timer'));
     app.use('/api/payment', require('./routes/payment'));
     app.use('/api/game-session', require('./routes/game-session'));
+    app.use('/api/uploads', require('./routes/uploads'));
     app.use('/uploads', express.static('public/uploads'));
     
     // Game rooms storage
