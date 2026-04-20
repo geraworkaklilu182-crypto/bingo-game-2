@@ -5,12 +5,15 @@ let pool = null;
 
 const initDB = async () => {
   try {
-    // Use DATABASE_URL from environment (Render provides this) or local connection
-    const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/bingo_game';
+    const connectionString = process.env.DATABASE_URL;
+    
+    if (!connectionString) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
     
     pool = new Pool({
       connectionString: connectionString,
-      ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+      ssl: connectionString.includes('render.com') ? { rejectUnauthorized: false } : false
     });
     
     // Create tables
@@ -80,6 +83,16 @@ const initDB = async () => {
         id SERIAL PRIMARY KEY,
         timer_seconds INTEGER DEFAULT 45,
         min_players INTEGER DEFAULT 2,
+        min_deposit INTEGER DEFAULT 10,
+        max_deposit INTEGER DEFAULT 10000,
+        min_withdrawal INTEGER DEFAULT 50,
+        max_withdrawal INTEGER DEFAULT 50000,
+        admin_commission INTEGER DEFAULT 20,
+        card_cost INTEGER DEFAULT 10,
+        hero_image TEXT,
+        game_image_1 TEXT,
+        game_image_2 TEXT,
+        game_image_3 TEXT,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       

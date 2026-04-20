@@ -200,7 +200,7 @@
 
         .cards-section {
             flex: 2;
-            min-width: 500px;
+            min-width: 280px;
             background: rgba(0,0,0,0.3);
             border-radius: 20px;
             padding: 20px;
@@ -452,6 +452,157 @@
             .bingo-arena { flex-direction: column; }
             .cards-container { grid-template-columns: 1fr; }
         }
+
+        /* ========== ADD THESE MEDIA QUERIES ========== */
+
+/* Tablet (768px - 900px) */
+@media (max-width: 900px) {
+    .bingo-arena { 
+        flex-direction: column; 
+    }
+    .cards-container { 
+        grid-template-columns: 1fr; 
+    }
+    .numbers-select-grid {
+        grid-template-columns: repeat(10, 1fr);
+    }
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobile (481px - 768px) */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .info-section, .cards-section {
+        min-width: 100%;
+    }
+    
+    .numbers-select-grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .stat-value {
+        font-size: 18px;
+    }
+    
+    .current-number {
+        font-size: 32px;
+    }
+    
+    #timerDisplay {
+        font-size: 32px;
+    }
+    
+    .btn {
+        padding: 8px 14px;
+        font-size: 11px;
+    }
+    
+    .bingo-letters .letter-btn {
+        width: 45px;
+        padding: 6px;
+    }
+    
+    .bingo-letters .letter {
+        font-size: 18px;
+    }
+    
+    .grid-cell {
+        font-size: 10px;
+    }
+    
+    .select-card {
+        font-size: 8px;
+    }
+}
+
+/* Small Mobile (up to 480px) */
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+    
+    .numbers-select-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 3px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-value {
+        font-size: 16px;
+    }
+    
+    .current-number {
+        font-size: 24px;
+    }
+    
+    #timerDisplay {
+        font-size: 24px;
+    }
+    
+    .btn {
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+    
+    .grid-cell {
+        font-size: 9px;
+    }
+    
+    .select-card {
+        font-size: 7px;
+    }
+    
+    .bingo-letters .letter-btn {
+        width: 35px;
+        padding: 4px;
+    }
+    
+    .bingo-letters .letter {
+        font-size: 14px;
+    }
+    
+    .card-number {
+        font-size: 11px;
+    }
+    
+    .col-letter {
+        font-size: 10px;
+    }
+    
+    .controls {
+        gap: 6px;
+    }
+}
+
+/* For very small screens */
+@media (max-width: 360px) {
+    .numbers-select-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    
+    .select-card {
+        font-size: 6px;
+    }
+    
+    .btn {
+        padding: 5px 8px;
+        font-size: 9px;
+    }
+}
     </style>
 </head>
 <body>
@@ -693,6 +844,10 @@
         let takenCards = [];
         let hasConfirmed = false;
 
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : '/api';
+
         // ============ SOCKET EVENTS ============
         socket.onAny((event, ...args) => {
             console.log('📡 Socket event:', event, args);
@@ -706,7 +861,7 @@
         // ============ LOAD GAME STATE FROM DATABASE ============
         async function loadGameState() {
             try {
-                const response = await fetch('/api/game-session/state', {
+                const response = await fetch(`${API_URL}/game-session/state`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 const data = await response.json();
@@ -754,7 +909,7 @@
                     document.getElementById('selectionArea').style.display = 'none';
                 }
                 
-                const walletRes = await fetch('/api/wallet/balance', {
+                const walletRes = await fetch(`${API_URL}/wallet/balance`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 const walletData = await walletRes.json();
@@ -769,7 +924,8 @@
         async function joinGameRoom() {
             try {
                 // Get user info
-                const userRes = await fetch('/api/auth/me', {
+                const userRes = await fetch(`${API_URL}/auth/me`, {
+                    
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 const user = await userRes.json();
@@ -830,7 +986,7 @@
 // Update marked numbers in database
 async function updateMarkedInDatabase(cardId, markedNumbers) {
     try {
-        await fetch('/api/game-session/update-marked', {
+        await fetch(`${API_URL}/game-session/update-marked`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -924,7 +1080,8 @@ function renderSingleCard(cardIdx) {
                 const cardData = generateCardData(cardNumber);
                 
                 try {
-                    const response = await fetch('/api/game-session/select-card', {
+                    const response = await fetch(`${API_URL}/game-session/select-card`, {
+
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1026,9 +1183,10 @@ function renderSingleCard(cardIdx) {
 }
 
 // New function to update marked numbers in database
-async function updateMarkedInDatabase(cardId, markedNumbers) {
+/*async function updateMarkedInDatabase(cardId, markedNumbers) {
     try {
-        await fetch('/api/game-session/update-marked', {
+        await fetch(`${API_URL}/game-session/update-marked`, {
+            
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1042,7 +1200,7 @@ async function updateMarkedInDatabase(cardId, markedNumbers) {
 }
 
 // New function to render a single card
-function renderSingleCard(cardIdx) {
+ function renderSingleCard(cardIdx) {
     const card = myCards[cardIdx];
     const container = document.getElementById('cardsContainer');
     const allCards = container.innerHTML;
@@ -1070,7 +1228,7 @@ function renderSingleCard(cardIdx) {
             renderPlayerCards();
         }
     }
-}
+}*/
         function checkWinOnCard(cardIdx) {
             const card = myCards[cardIdx];
             if (card.won) return false;
@@ -1304,7 +1462,8 @@ async function resetMyCards() {
     }
     
     try {
-        const response = await fetch('/api/game-session/clear-cards', {
+        const response = await fetch(`${API_URL}/game-session/clear-cards`, {
+
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

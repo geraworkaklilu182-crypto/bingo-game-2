@@ -5,160 +5,10 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.container {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    width: 90%;
-    max-width: 500px;
-}
-
-h1 {
-    text-align: center;
-    margin-bottom: 2rem;
-    color: #333;
-}
-
-.auth-section {
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
-
-.login-form, .register-form {
-    flex: 1;
-    min-width: 200px;
-}
-
-h2 {
-    margin-bottom: 1rem;
-    color: #667eea;
-}
-
-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-}
-
-button {
-    width: 15%;
-    padding: 10px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-button:hover {
-    background: #764ba2;
-}
-
-#message {
-    margin-top: 1rem;
-    padding: 10px;
-    text-align: center;
-    border-radius: 5px;
-}
-/* Add to existing CSS */
-.user-info {
-    background: #f5f5f5;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.user-info h2 {
-    color: #667eea;
-    margin-bottom: 15px;
-}
-
-.user-info p {
-    font-size: 18px;
-    margin: 10px 0;
-    color: #333;
-}
-
-.game-actions {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
-
-.btn-primary {
-    background: #667eea;
-    color: white;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.btn-primary:hover {
-    background: #764ba2;
-}
-
-.btn-secondary {
-    background: #48bb78;
-    color: white;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.btn-secondary:hover {
-    background: #38a169;
-}
-
-.btn-danger {
-    background: #f56565;
-    color: white;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.btn-danger:hover {
-    background: #e53e3e;
-}
-.btn-primary:nth-of-type(2) {
-    background: #9b59b6;
-}
-
-.btn-primary:nth-of-type(2):hover {
-    background: #8e44ad;
-}
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    padding: 15px;
 }
 
 .container {
@@ -247,7 +97,7 @@ body {
     background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
     border: 2px solid #e2e8f0;
     border-radius: 12px;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
@@ -306,27 +156,353 @@ body {
     50% { transform: scale(1.05); }
 }
 
-/* Responsive Design */
+/* User Info */
+.user-info {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.user-info h2 {
+    color: #667eea;
+    margin-bottom: 15px;
+}
+
+.user-info p {
+    font-size: 18px;
+    margin: 10px 0;
+    color: #333;
+}
+
+/* Game Actions */
+.game-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+/* Auth Section */
+.auth-section {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.login-form, .register-form {
+    flex: 1;
+    min-width: 200px;
+}
+
+h2 {
+    margin-bottom: 1rem;
+    color: #667eea;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+button {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #764ba2;
+}
+
+#message {
+    margin-top: 1rem;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.btn-primary:nth-of-type(2) {
+    background: #9b59b6;
+}
+
+.btn-primary:nth-of-type(2):hover {
+    background: #8e44ad;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .bingo-card {
+        gap: 8px;
+        padding: 15px;
+    }
+    
+    .bingo-cell {
+        font-size: 0.9rem;
+    }
+}
+
+/* Mobile (481px - 768px) */
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
     .container {
         padding: 10px;
     }
     
+    /* Cards stack vertically */
     .bingo-card {
-        gap: 5px;
-        padding: 10px;
+        gap: 6px;
+        padding: 12px;
     }
     
     .bingo-cell {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
+        border-radius: 8px;
     }
     
+    /* Buttons become full width */
     .btn-primary, .btn-secondary, .btn-danger {
-        padding: 8px 16px;
+        padding: 10px 16px;
         font-size: 14px;
+        width: 100%;
+        text-align: center;
     }
     
     .game-actions {
         flex-direction: column;
+        gap: 10px;
+    }
+    
+    /* Auth section stacks */
+    .auth-section {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .login-form, .register-form {
+        min-width: 100%;
+    }
+    
+    /* User info */
+    .user-info p {
+        font-size: 14px;
+    }
+    
+    /* Called numbers */
+    .called-numbers {
+        gap: 5px;
+    }
+    
+    .called-number {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+    
+    /* Win message */
+    .win-message {
+        font-size: 1.2rem;
+        padding: 12px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.2rem;
+    }
+    
+    input, button {
+        font-size: 14px;
+    }
+}
+
+/* Small Mobile (up to 480px) */
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+    
+    .container {
+        padding: 8px;
+    }
+    
+    .bingo-card {
+        gap: 4px;
+        padding: 8px;
+    }
+    
+    .bingo-cell {
+        font-size: 0.6rem;
+        border-radius: 6px;
+    }
+    
+    .btn-primary, .btn-secondary, .btn-danger {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .called-number {
+        padding: 3px 6px;
+        font-size: 9px;
+    }
+    
+    .user-info {
+        padding: 12px;
+    }
+    
+    .user-info p {
+        font-size: 12px;
+    }
+    
+    .card {
+        padding: 15px;
+    }
+}
+
+/* For 2 cards side by side on desktop, stack on mobile */
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .cards-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+/* Number selection grid - responsive columns */
+.numbers-select-grid {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    gap: 5px;
+}
+
+@media (max-width: 768px) {
+    .numbers-select-grid {
+        grid-template-columns: repeat(10, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .numbers-select-grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 3px;
+    }
+}
+
+/* Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+/* Bingo letters - responsive */
+.bingo-letters {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .bingo-letters {
+        gap: 5px;
+    }
+    
+    .letter-btn {
+        width: 45px;
+        padding: 6px;
+    }
+    
+    .letter-btn .letter {
+        font-size: 18px;
+    }
+}
+
+/* Controls section */
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+    .controls {
+        gap: 8px;
+    }
+    
+    .controls .btn {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+}
+
+/* Timer display */
+.timer-box {
+    text-align: center;
+    padding: 15px;
+}
+
+#timerDisplay {
+    font-size: 48px;
+}
+
+@media (max-width: 600px) {
+    #timerDisplay {
+        font-size: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    #timerDisplay {
+        font-size: 28px;
+    }
+}
+
+/* Current number display */
+.current-number {
+    font-size: 48px;
+}
+
+@media (max-width: 600px) {
+    .current-number {
+        font-size: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .current-number {
+        font-size: 24px;
     }
 }
