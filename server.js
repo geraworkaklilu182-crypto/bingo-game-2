@@ -228,25 +228,49 @@ const startServer = async () => {
             });
         });
         
-        socket.on('player-bingo', (data) => {
-            const { gameId, playerName, cardId, pattern } = data;
-            const room = gameRooms.get(gameId);
-            if (!room || !room.gameActive || room.winner) return;
-            room.winner = { playerName, cardId, pattern, timestamp: Date.now() };
-            room.gameActive = false;
-            room.status = 'ended';
-            
-            if (gameTimers.has(gameId)) {
-                clearInterval(gameTimers.get(gameId));
-                gameTimers.delete(gameId);
-            }
-            
-            io.to(gameId).emit('game-winner', {
-                winner: playerName,
-                cardId: cardId,
-                pattern: pattern
-            });
-        });
+  socket.on('player-bingo', async (data) => {
+    const { gameId, playerName, cardId, pattern } = data;
+    const room = gameRooms.get(gameId);
+    if (!room || !room.gameActive || room.winner) return;
+    
+    room.winner = { playerName, cardId, pattern, timestamp: Date.now() };
+    room.gameActive = false;
+    room.status = 'ended';
+    
+    if (gameTimers.has(gameId)) {
+        clearInterval(gameTimers.get(gameId));
+        gameTimers.delete(gameId);
+    }
+    
+    // ========== ADD THIS CODE HERE ==========
+    // Clear all cards for next game
+    try {
+        const db = getDB();
+        await db.query('DELETE FROM game_cards');
+        await db.query('DELETE FROM taken_cards');
+        await db.query(`UPDATE active_game SET 
+            status = 'waiting',
+            current_players = 0,
+            called_numbers = '[]',
+            time_left = timer_seconds
+            WHERE id = 1`);
+        console.log('[GAME] Cards cleared for next game');
+    } catch (error) {
+        console.error('[GAME] Error clearing cards:', error);
+    }
+    // ========== END ADDED CODE ==========
+    
+    io.to(gameId).emit('game-winner', {
+        winner: playerName,
+        cardId: cardId,
+        pattern: pattern
+    });
+    
+    // After 5 seconds, tell clients to reset for next game
+    setTimeout(() => {
+        io.to(gameId).emit('reset-for-next-game');
+    }, 5000);
+});
         
         socket.on('disconnect', () => {
             console.log('Player disconnected:', socket.id);

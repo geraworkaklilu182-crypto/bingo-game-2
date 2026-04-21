@@ -1358,6 +1358,11 @@ function renderSingleCard(cardIdx) {
             document.getElementById('gameStatus').innerHTML = `👥 ${data.message}`;
         });
 
+           socket.on('reset-for-next-game', () => {
+    // Redirect to card selection page for next game
+           window.location.href = '/card-selection.html';
+      }); 
+
         function getLetterForNumber(number) {
             if (number >= 1 && number <= 15) return 'B';
             if (number >= 16 && number <= 30) return 'I';
