@@ -22,7 +22,7 @@ const verifyToken = (req, res, next) => {
 };
 
 // Save game result
-router.post('/save', verifyToken, async (req, res) => {
+/*router.post('/save', verifyToken, async (req, res) => {
   try {
     const { card_numbers, marked_numbers, score, won } = req.body;
     const userId = req.userId;
@@ -135,6 +135,261 @@ router.post('/save', verifyToken, async (req, res) => {
     console.error('Save game error:', error);
     res.status(500).json({ message: 'Server error' });
   }
+});*/
+
+
+
+/* router.post('/save', verifyToken, async (req, res) => {
+  try {
+    const { card_numbers, marked_numbers, score, won, gameSessionId } = req.body;
+    const userId = req.userId;
+    const db = getDB();
+    
+    // 1. CHECK BALANCE FIRST
+    const walletResult = await db.query('SELECT balance FROM wallet WHERE user_id = $1', [userId]);
+    const wallet = walletResult.rows[0];
+    
+    if (!wallet || wallet.balance < 10) {
+      return res.status(400).json({ 
+        message: 'Insufficient balance! You need at least 10 coins to play.',
+        balance: wallet?.balance || 0
+      });
+    }
+    
+    // 2. DEDUCT GAME COST (10 coins)
+    await db.query('UPDATE wallet SET balance = balance - 10, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1', [userId]);
+    
+    // 3. Record game cost transaction
+    await db.query(
+      `INSERT INTO transactions (user_id, type, amount, description) 
+       VALUES ($1, 'game_loss', 10, 'Paid 10 coins to play Bingo')`,
+      [userId]
+    );
+    
+    // 4. SAVE THE GAME
+    const result = await db.query(
+      `INSERT INTO games (user_id, card_numbers, marked_numbers, score, won, completed_at) 
+       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) RETURNING id`,
+      [userId, JSON.stringify(card_numbers), JSON.stringify(marked_numbers), score, won ? 1 : 0]
+    );
+    
+    const gameId = result.rows[0].id;
+    let finalMessage = 'Game saved!';
+    let newBalance = wallet.balance - 10;
+    
+    // 5. IF USER WON - CALCULATE MULTIPLAYER POT
+    if (won) {
+      // Get total players count in this game session
+      let totalPlayers = 1; // Default to 1 if no session
+      
+      if (gameSessionId) {
+        const playersResult = await db.query(
+          'SELECT COUNT(DISTINCT user_id) as count FROM games WHERE (card_numbers->>\'sessionId\')::text = $1',
+          [gameSessionId]
+        );
+        totalPlayers = parseInt(playersResult.rows[0]?.count) || 1;
+      }
+      
+      // Calculate pot: each player paid 10 coins
+      const totalPot = totalPlayers * 10;
+      const commission = Math.floor(totalPot * 0.2); // 20% commission
+      const winnerAmount = totalPot - commission;
+      
+      // Update player balance with winnings
+      await db.query(
+        'UPDATE wallet SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+        [winnerAmount, userId]
+      );
+      
+      // Record player win transaction
+      await db.query(
+        `INSERT INTO transactions (user_id, type, amount, description) 
+         VALUES ($1, 'game_win', $2, $3)`,
+        [userId, winnerAmount, `Won ${winnerAmount} coins from Bingo! (${commission} coins commission taken, ${totalPlayers} players in pot)`]
+      );
+      
+      // Record commission for admin
+      const adminResult = await db.query('SELECT id FROM users WHERE role = $1 LIMIT 1', ['admin']);
+      if (adminResult.rows.length > 0) {
+        const adminId = adminResult.rows[0].id;
+        
+        await db.query(
+          `INSERT INTO transactions (user_id, type, amount, description) 
+           VALUES ($1, 'commission', $2, $3)`,
+          [adminId, commission, `Commission from game #${gameId} (${totalPlayers} players, pot: ${totalPot})`]
+        );
+        
+        // Update admin wallet
+        await db.query(
+          'UPDATE wallet SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+          [commission, adminId]
+        );
+      }
+      
+      // Update user stats for win
+      await db.query(
+        `UPDATE users SET games_played = games_played + 1, games_won = games_won + 1, total_score = total_score + $1 
+         WHERE id = $2`,
+        [winnerAmount, userId]
+      );
+      
+      finalMessage = `🎉 BINGO! You won ${winnerAmount} coins! (${commission} coins commission, ${totalPlayers} players in pot)`;
+      
+      // Get new balance after win
+      const updatedWalletResult = await db.query('SELECT balance FROM wallet WHERE user_id = $1', [userId]);
+      newBalance = updatedWalletResult.rows[0].balance;
+      
+    } else {
+      // Update user stats for loss
+      await db.query(
+        `UPDATE users SET games_played = games_played + 1 WHERE id = $1`,
+        [userId]
+      );
+      
+      finalMessage = '😢 Game lost! Better luck next time! -10 coins';
+      
+      // Get new balance after loss
+      const updatedWalletResult = await db.query('SELECT balance FROM wallet WHERE user_id = $1', [userId]);
+      newBalance = updatedWalletResult.rows[0].balance;
+    }
+    
+    res.json({ 
+      message: finalMessage,
+      balance: newBalance,
+      won: won
+    });
+    
+  } catch (error) {
+    console.error('Save game error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+*/
+
+
+
+router.post('/save', verifyToken, async (req, res) => {
+  try {
+    const { card_numbers, marked_numbers, score, won, gameSessionId } = req.body;
+    const userId = req.userId;
+    const db = getDB();
+    
+    // ✅ REMOVED: No balance check or deduction here (already deducted when joining)
+    
+    // 1. SAVE THE GAME
+    const result = await db.query(
+      `INSERT INTO games (user_id, card_numbers, marked_numbers, score, won, game_session_id, completed_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP) RETURNING id`,
+      [userId, JSON.stringify(card_numbers), JSON.stringify(marked_numbers), score, won ? 1 : 0, gameSessionId]
+    );
+    
+    const gameId = result.rows[0].id;
+    
+    // Get current balance first
+    const walletResult = await db.query('SELECT balance FROM wallet WHERE user_id = $1', [userId]);
+    let newBalance = walletResult.rows[0]?.balance || 0;
+    
+    if (won) {
+      // Get total players in this game session
+      let totalPlayers = 1;
+      if (gameSessionId) {
+        try {
+         /* const playersResult = await db.query(
+            `SELECT COUNT(DISTINCT user_id) as count 
+             FROM games 
+             WHERE (card_numbers->>'gameSessionId')::text = $1 
+                OR card_numbers::text LIKE $2`,
+            [gameSessionId, `%"gameSessionId":"${gameSessionId}"%`]
+          );*/
+          
+          const playersResult = await db.query(
+  `SELECT COUNT(DISTINCT user_id) as count 
+   FROM games 
+   WHERE game_session_id = $1`,
+  [gameSessionId]
+);
+          totalPlayers = parseInt(playersResult.rows[0]?.count) || 1;
+        } catch(e) {
+          console.log('Could not count players, using default 1:', e.message);
+        }
+      }
+      console.log(`========== WINNER CALCULATION ==========`);
+console.log(`gameSessionId received: ${gameSessionId}`);
+console.log(`userId: ${userId}`);
+console.log(`wallet balance before: ${walletResult.rows[0]?.balance}`);
+      
+      // Calculate pot and winnings
+      const totalPot = totalPlayers * 10;
+      const commission = Math.floor(totalPot * 0.2);
+      const winnerAmount = totalPot - commission;
+      
+      // ✅ ONLY ADD WINNINGS (do NOT deduct again)
+      await db.query(
+        'UPDATE wallet SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+        [winnerAmount, userId]
+      );
+      
+      // Record win transaction
+      await db.query(
+        `INSERT INTO transactions (user_id, type, amount, description) 
+         VALUES ($1, 'game_win', $2, $3)`,
+        [userId, winnerAmount, `Won ${winnerAmount} coins from Bingo! (${totalPlayers} players, ${commission} commission)`]
+      );
+
+      console.log(`totalPlayers found: ${totalPlayers}`);
+console.log(`totalPot: ${totalPot}`);
+console.log(`commission: ${commission}`);
+console.log(`winnerAmount: ${winnerAmount}`);
+console.log(`=========================================`);
+      
+      // Record commission for admin
+      const adminResult = await db.query('SELECT id FROM users WHERE role = $1 LIMIT 1', ['admin']);
+      if (adminResult.rows.length > 0) {
+        const adminId = adminResult.rows[0].id;
+        await db.query(
+          `INSERT INTO transactions (user_id, type, amount, description) 
+           VALUES ($1, 'commission', $2, $3)`,
+          [adminId, commission, `Commission from game session ${gameSessionId} (${totalPlayers} players)`]
+        );
+        await db.query(
+          'UPDATE wallet SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+          [commission, adminId]
+        );
+      }
+      
+      // Update user stats
+      await db.query(
+        `UPDATE users SET games_played = games_played + 1, games_won = games_won + 1, total_score = total_score + $1 
+         WHERE id = $2`,
+        [winnerAmount, userId]
+      );
+      
+      newBalance = winnerAmount + (walletResult.rows[0]?.balance || 0);
+      
+      res.json({ 
+        message: `🎉 BINGO! You won ${winnerAmount} coins! (${totalPlayers} players in pot)`,
+        balance: newBalance,
+        won: true
+      });
+      
+    } else {
+      // Player lost – no balance change (already deducted when joining)
+      await db.query(
+        `UPDATE users SET games_played = games_played + 1 WHERE id = $1`,
+        [userId]
+      );
+      
+      res.json({ 
+        message: '😢 Game lost! Better luck next time!',
+        balance: newBalance,
+        won: false
+      });
+    }
+    
+  } catch (error) {
+    console.error('Save game error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Get user game history
@@ -144,7 +399,7 @@ router.get('/history', verifyToken, async (req, res) => {
     const db = getDB();
     
     const result = await db.query(
-      `SELECT id, card_numbers, marked_numbers, score, won, completed_at, created_at 
+      `SELECT id, card_numbers, marked_numbers, score, won, game_session_id, completed_at, created_at 
        FROM games 
        WHERE user_id = $1 
        ORDER BY created_at DESC 

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');  // ← ADD 
 const { getDB } = require('../config/database');
 
 const router = express.Router();
@@ -74,6 +75,101 @@ const verifyAdmin = async (req, res, next) => {
         return res.status(401).json({ message: 'Invalid token' });
     }
 };
+
+//const axios = require('axios');
+
+// Add this function to add coins to user wallet
+async function addCoinsToWallet(userId, amount, db) {
+    await db.query(
+        'UPDATE wallet SET balance = balance + $1, updated_at = NOW() WHERE user_id = $2',
+        [amount, userId]
+    );
+    
+    await db.query(
+        `INSERT INTO transactions (user_id, type, amount, description)
+         VALUES ($1, 'deposit', $2, $3)`,
+        [userId, amount, 'Telebirr deposit via auto-verification']
+    );
+}
+
+// Add this function to save pending deposits for admin review
+async function savePendingDeposit(userId, amount, referenceNumber, paymentMethod, db) {
+    await db.query(
+        `INSERT INTO pending_deposits (user_id, amount, reference_number, payment_method, status)
+         VALUES ($1, $2, $3, $4, 'pending')`,
+        [userId, amount, referenceNumber, paymentMethod]
+    );
+}
+
+// Verify deposit using public API
+router.post('/verify-deposit', verifyToken, async (req, res) => {
+    const { amount, paymentMethod, referenceNumber } = req.body;
+    const userId = req.userId;
+    const db = getDB();
+
+    // Validate inputs
+    if (!amount || amount < 10) {
+        return res.status(400).json({ message: 'Minimum deposit is 10 birr' });
+    }
+    if (!referenceNumber) {
+        return res.status(400).json({ message: 'Reference number is required' });
+    }
+
+    try {
+        // Call the public verification API
+        let verifyResponse;
+        try {
+            if (paymentMethod === 'telebirr') {
+                verifyResponse = await axios.post('https://verify.leul.et/verify-telebirr', {
+                    reference: referenceNumber
+                });
+            } else if (paymentMethod === 'cbe') {
+                verifyResponse = await axios.post('https://verify.leul.et/verify-cbe', {
+                    reference: referenceNumber
+                });
+            }
+        } catch (apiError) {
+            console.log('API error, falling back to manual approval');
+            await savePendingDeposit(userId, amount, referenceNumber, paymentMethod, db);
+            return res.status(202).json({
+                success: false,
+                message: 'Auto-verification unavailable. Admin will review and approve within 24 hours.'
+            });
+        }
+
+        // Check verification result
+        const { status, verifiedAmount } = verifyResponse.data;
+
+        if (status === 'SUCCESS' && verifiedAmount >= amount) {
+            // Auto-approve - add coins immediately
+            await addCoinsToWallet(userId, amount, db);
+            
+            res.json({
+                success: true,
+                message: `✅ Payment verified! ${amount} coins added to your wallet.`
+            });
+        } else {
+            // Verification failed - save for manual admin review
+            await savePendingDeposit(userId, amount, referenceNumber, paymentMethod, db);
+            
+            res.status(202).json({
+                success: false,
+                message: 'Could not auto-verify. Admin will review your deposit and approve within 24 hours.'
+            });
+        }
+
+    } catch (error) {
+        console.error('Verification error:', error);
+        
+        // On any error, fallback to manual approval
+        await savePendingDeposit(userId, amount, referenceNumber, paymentMethod, db);
+        
+        res.status(202).json({
+            success: false,
+            message: 'Verification service error. Admin will review your deposit.'
+        });
+    }
+});
 
 // Get TeleBirr number (for users to send money to)
 router.get('/telebirr-number', (req, res) => {

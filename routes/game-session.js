@@ -273,4 +273,105 @@ router.post('/update-marked', verifyToken, async (req, res) => {
     }
 });
 
+
+// Clear a specific card (for unselecting/refund)
+router.post('/clear-card', verifyToken, async (req, res) => {
+    try {
+        const { cardNumber } = req.body;
+        const userId = req.userId;
+        const db = getDB();
+        
+        console.log('Clearing card:', { cardNumber, userId });
+        
+        // Check if card is already taken by this user
+        const cardResult = await db.query(
+            'SELECT * FROM game_cards WHERE player_id = $1 AND card_number = $2 AND is_active = 1',
+            [userId, cardNumber]
+        );
+        
+        if (cardResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Card not found' });
+        }
+        
+        // Mark card as inactive
+        await db.query(
+            'UPDATE game_cards SET is_active = 0 WHERE player_id = $1 AND card_number = $2',
+            [userId, cardNumber]
+        );
+        
+        // Remove from taken cards
+        await db.query(
+            'DELETE FROM taken_cards WHERE player_id = $1 AND card_number = $2 AND game_ended = 0',
+            [userId, cardNumber]
+        );
+        
+        // Refund coins to user
+        let cardCost = 10;
+        try {
+            const settingsResult = await db.query('SELECT card_cost FROM settings WHERE id = 1');
+            if (settingsResult.rows[0] && settingsResult.rows[0].card_cost) {
+                cardCost = settingsResult.rows[0].card_cost;
+            }
+        } catch(e) {
+            console.log('Using default card cost: 10');
+        }
+        
+        await db.query(
+            'UPDATE wallet SET balance = balance + $1 WHERE user_id = $2',
+            [cardCost, userId]
+        );
+        
+        // Record refund transaction
+        await db.query(
+            `INSERT INTO transactions (user_id, type, amount, description)
+             VALUES ($1, 'refund', $2, $3)`,
+            [userId, cardCost, `Refund for card #${cardNumber}`]
+        );
+        
+        // Update player count
+        const playerCountResult = await db.query('SELECT COUNT(DISTINCT player_id) as count FROM game_cards WHERE is_active = 1 AND is_spectator = 0');
+        await db.query('UPDATE active_game SET current_players = $1 WHERE id = 1', [parseInt(playerCountResult.rows[0]?.count) || 0]);
+        
+        res.json({ success: true, message: 'Card cleared and refunded' });
+        
+    } catch (error) {
+        console.error('Error clearing card:', error);
+        res.status(500).json({ message: 'Server error: ' + error.message });
+    }
+});
+// Take a card (mark as taken by a player)
+router.post('/take-card', verifyToken, async (req, res) => {
+    try {
+        const { sessionId, cardNumber, playerName } = req.body;
+        const userId = req.userId;
+        const db = getDB();
+        
+        // Check if card is already taken
+        const existingResult = await db.query(
+            'SELECT * FROM taken_cards WHERE card_number = $1 AND game_ended = 0',
+            [cardNumber]
+        );
+        
+        if (existingResult.rows.length > 0) {
+            return res.status(400).json({ message: 'Card already taken!' });
+        }
+        
+        await db.query(
+            `INSERT INTO taken_cards (card_number, player_name, player_id, game_ended)
+             VALUES ($1, $2, $3, 0)`,
+            [cardNumber, playerName, userId]
+        );
+        
+        res.json({ success: true, message: 'Card taken successfully' });
+        
+    } catch (error) {
+        console.error('Error taking card:', error);
+        res.status(500).json({ message: 'Server error: ' + error.message });
+    }
+});
+
+
+
+
+
 module.exports = router;

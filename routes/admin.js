@@ -295,5 +295,145 @@ router.put('/winner-settings', verifyAdmin, async (req, res) => {
         [single_winner, multiple_winners_threshold]);
     res.json({ success: true });
 });
+// Get pending deposits
+router.get('/pending-deposits', verifyAdmin, async (req, res) => {
+    try {
+        const db = getDB();
+        const result = await db.query(
+            `SELECT p.*, u.username 
+             FROM pending_deposits p 
+             JOIN users u ON p.user_id = u.id 
+             WHERE p.status = 'pending'
+             ORDER BY p.created_at ASC`
+        );
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Approve a pending deposit
+/*router.post('/approve-deposit/:id', verifyAdmin, async (req, res) => {
+    try {
+        const depositId = req.params.id;
+        const adminId = req.userId;
+        const db = getDB();
+
+        // Get the pending deposit
+        const depositResult = await db.query(
+            'SELECT * FROM pending_deposits WHERE id = $1 AND status = $2',
+            [depositId, 'pending']
+        );
+
+        if (depositResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Deposit not found or already processed' });
+        }
+
+        const deposit = depositResult.rows[0];
+
+        // Add coins to user's wallet
+        await db.query(
+            'UPDATE wallet SET balance = balance + $1, updated_at = NOW() WHERE user_id = $2',
+            [deposit.amount, deposit.user_id]
+        );
+
+        // Update deposit status
+        await db.query(
+            `UPDATE pending_deposits 
+             SET status = 'approved', approved_by = $1, approved_at = NOW()
+             WHERE id = $2`,
+            [adminId, depositId]
+        );
+
+        // Record transaction
+        await db.query(
+            `INSERT INTO transactions (user_id, type, amount, description)
+             VALUES ($1, 'deposit', $2, $3)`,
+            [deposit.user_id, deposit.amount, `Manual approval - ${deposit.reference_number}`]
+        );
+
+        res.json({ success: true, message: 'Deposit approved and coins added!' });
+
+    } catch (error) {
+        console.error('Approve deposit error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});*/
+
+// Approve a pending deposit
+router.post('/approve-deposit/:id', verifyAdmin, async (req, res) => {
+    try {
+        const depositId = req.params.id;
+        const adminId = req.userId;
+        const db = getDB();
+
+        // Get the pending deposit
+        const depositResult = await db.query(
+            'SELECT * FROM pending_deposits WHERE id = $1 AND status = $2',
+            [depositId, 'pending']
+        );
+
+        if (depositResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Deposit not found or already processed' });
+        }
+
+        const deposit = depositResult.rows[0];
+
+        // Check if wallet exists
+        const walletCheck = await db.query('SELECT balance FROM wallet WHERE user_id = $1', [deposit.user_id]);
+        if (!walletCheck.rows[0]) {
+            await db.query('INSERT INTO wallet (user_id, balance) VALUES ($1, 0)', [deposit.user_id]);
+        }
+
+        // Add coins to user's wallet
+        await db.query(
+            'UPDATE wallet SET balance = balance + $1, updated_at = NOW() WHERE user_id = $2',
+            [deposit.amount, deposit.user_id]
+        );
+
+        // Update deposit status
+        await db.query(
+            `UPDATE pending_deposits 
+             SET status = 'approved', approved_by = $1, approved_at = NOW()
+             WHERE id = $2`,
+            [adminId, depositId]
+        );
+
+        // Record transaction
+        await db.query(
+            `INSERT INTO transactions (user_id, type, amount, description)
+             VALUES ($1, 'deposit', $2, $3)`,
+            [deposit.user_id, deposit.amount, `Deposit approved - Ref: ${deposit.reference_number}, Telebirr: ${deposit.telebirr_number}`]
+        );
+
+        res.json({ success: true, message: 'Deposit approved and coins added!' });
+
+    } catch (error) {
+        console.error('Approve deposit error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Reject a pending deposit
+router.post('/reject-deposit/:id', verifyAdmin, async (req, res) => {
+    try {
+        const depositId = req.params.id;
+        const { reason } = req.body;
+        const db = getDB();
+
+        await db.query(
+            `UPDATE pending_deposits 
+             SET status = 'rejected', admin_notes = $1
+             WHERE id = $2`,
+            [reason || 'Rejected by admin', depositId]
+        );
+
+        res.json({ success: true, message: 'Deposit rejected' });
+
+    } catch (error) {
+        console.error('Reject deposit error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 module.exports = router;

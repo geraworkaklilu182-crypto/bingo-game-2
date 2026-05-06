@@ -37,14 +37,17 @@ const initDB = async () => {
         marked_numbers TEXT DEFAULT '[]',
         score INTEGER DEFAULT 0,
         won INTEGER DEFAULT 0,
+        game_session_id VARCHAR(100),
         completed_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       
+    
+      
       CREATE TABLE IF NOT EXISTS wallet (
         id SERIAL PRIMARY KEY,
         user_id INTEGER UNIQUE REFERENCES users(id),
-        balance INTEGER DEFAULT 10,
+        balance INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

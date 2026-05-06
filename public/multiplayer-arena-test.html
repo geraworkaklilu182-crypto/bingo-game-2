@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DIL BINGO - Test Arena</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Container Split - 60/40 */
+        .bingo-arena {
+            display: grid;
+            grid-template-columns: 6fr 4fr;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+            min-width: 600px;
+        }
+
+        /* Modern Dark Purple Background */
+        body {
+            background: radial-gradient(circle at center, #2e1a47 0%, #1a0b2e 100%);
+            font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        /* Game Container */
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Game Header */
+        .game-header h1 {
+            color: #ffd700;
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            flex: 1;
+        }
+        .stat-box:first-child {
+            background: #d4af37;
+            color: black;
+        }
+
+        /* Bingo Letters */
+        .bingo-letters {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .letter-btn {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 8px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            color: white;
+        }
+        .letter-btn:first-child { border-top: 4px solid #3b82f6; }
+        .letter-btn:nth-child(2) { border-top: 4px solid #ef4444; }
+        .letter-btn:nth-child(3) { border-top: 4px solid #eab308; }
+        .letter-btn:nth-child(4) { border-top: 4px solid #10b981; }
+        .letter-btn:last-child { border-top: 4px solid #f59e0b; }
+
+        /* Number Master Grid (Left Column) - NO SCROLL */
+        .numbers-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 16px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .mini-number-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            height: 100%;
+        }
+        .mini-num {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 6px 0;
+            font-size: 16px;
+            text-align: center;
+            border-radius: 16px;
+            font-weight: 600;
+        }
+        .mini-num.called {
+            background: #ffd700;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        /* Called Section */
+        .called-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+        .called-section h4 {
+            color: #ffd700;
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+        .called-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-height: 50px;
+            overflow-y: auto;
+        }
+        .called-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        /* Right Column Cards */
+        .cards-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 10px;
+        }
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Bingo Cards */
+        .bingo-card {
+            background: white;
+            border-radius: 10px;
+            padding: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            max-width: 350px;
+            
+        }
+        .card-header {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .card-number {
+            color: #1a1a2e;
+            font-size: 19px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.05);
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 15px;
+        }
+        .card-letters {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            margin-bottom: 6px;
+        }
+        .card-letter {
+            text-align: center;
+            font-size: 19px;
+            font-weight: bold;
+            padding: 4px;
+            border-radius: 5px;
+            color: white;
+        }
+        .card-letter.B { background: #3b82f6; }
+        .card-letter.I { background: #ef4444; }
+        .card-letter.N { background: #eab308; color: black; }
+        .card-letter.G { background: #10b981; }
+        .card-letter.O { background: #f59e0b; }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+        }
+        .grid-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+        }
+        .grid-cell.marked {
+            background: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
+            color: white;
+            border: none;
+        }
+        .grid-cell.free {
+            background: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
+            color: white;
+        }
+        .card-status {
+            text-align: center;
+            font-size: 8px;
+            margin-top: 5px;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        /* Single Row Control Bar */
+        .controls {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 15px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px 5px;
+            white-space: nowrap;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-call, .btn-bingo {
+            background: linear-gradient(to bottom, #f3cf44, #d4af37);
+            color: black;
+        }
+        .btn-leave, .btn-reset, .btn-sound, .btn-auto {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        /* Winner Banner */
+        .winner-banner {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .winner-banner h3 {
+            color: #1a1a2e;
+            font-size: 12px;
+        }
+
+        /* Selection Area */
+        .selection-area {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+        .selection-title {
+            color: #ffd700;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        .selection-subtitle {
+            color: #ccc;
+            font-size: 9px;
+            margin-bottom: 8px;
+        }
+        .numbers-select-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 3px;
+            max-height: 120px;
+            overflow-y: auto;
+            margin-bottom: 8px;
+        }
+        .select-card {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 8px;
+            cursor: pointer;
+            color: white;
+        }
+        .select-card.selected {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+        }
+        .select-card.taken {
+            background: #dc3545;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .confirm-btn {
+            width: 100%;
+            padding: 8px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .selected-info {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 10px;
+            color: #ffd700;
+        }
+
+        /* Taken indicator */
+        .taken-indicator {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            padding: 6px;
+            margin-bottom: 8px;
+            font-size: 10px;
+            color: #ccc;
+        }
+
+        /* Auto Status */
+        .auto-status {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+            margin-bottom: 8px;
+            color: #ffd700;
+            font-size: 10px;
+        }
+
+        /* Responsive */
+       /* @media (max-width: 768px) {
+            .bingo-arena {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .controls {
+                flex-wrap: wrap;
+            }
+            .btn {
+                font-size: 8px;
+                padding: 6px 5px;
+            }
+            .numbers-select-grid {
+                grid-template-columns: repeat(10, 1fr);
+            }
+            .mini-num {
+                font-size: 9px;
+                padding: 4px 0;
+            }
+            .letter-btn {
+                font-size: 14px;
+                padding: 5px;
+            }
+        }*/
+        /* Responsive - Only shrink, no column stacking */
+@media (max-width: 768px) {
+    .bingo-arena {
+        gap: 8px;
+        padding: 8px;
+    }
+    .controls {
+        flex-wrap: wrap;
+    }
+    .btn {
+        font-size: 8px;
+        padding: 6px 5px;
+    }
+    .numbers-select-grid {
+        grid-template-columns: repeat(10, 1fr);
+    }
+    .mini-num {
+        font-size: 9px;
+        padding: 4px 0;
+    }
+    .letter-btn {
+        font-size: 14px;
+        padding: 5px;
+    }
+    .stat-box {
+        padding: 4px 6px;
+        font-size: 9px;
+    }
+    .card-number {
+        font-size: 14px;
+    }
+    .card-letter {
+        font-size: 12px;
+    }
+    .grid-cell {
+        font-size: 11px;
+    }
+}
+    </style>
+        
+</head>
+<body>
+    <div class="game-container">
+        <div class="bingo-arena">
+            <!-- LEFT SECTION (60%) -->
+            <div class="info-section">
+                <div class="game-header"><h1>🎯 DIL BINGO</h1></div>
+                
+                <!-- Stats Row -->
+                <div class="stats-grid">
+                    <div class="stat-box">ID: <span id="gameId">TEST_GAME</span></div>
+                    <div class="stat-box">PL: <span id="playerCount">0</span></div>
+                    <div class="stat-box">BET: 10</div>
+                    <div class="stat-box">DR: <span id="derashAmount">0</span></div>
+                    <div class="stat-box">CL: <span id="calledCount">0</span></div>
+                </div>
+
+                <!-- Bingo Letters -->
+                <div class="bingo-letters">
+                    <div class="letter-btn">B</div>
+                    <div class="letter-btn">I</div>
+                    <div class="letter-btn">N</div>
+                    <div class="letter-btn">G</div>
+                    <div class="letter-btn">O</div>
+                </div>
+
+                <!-- 75 Number Master Grid - FULLY VISIBLE, NO SCROLL -->
+                <div class="numbers-preview">
+                    <div class="mini-number-grid" id="miniNumberGrid"></div>
+                </div>
+
+                <div class="called-section">
+                    <h4>📢 CALLED NUMBERS</h4>
+                    <div class="called-list" id="calledList"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT SECTION (40%) -->
+            <div class="cards-section">
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                    <div class="stat-box" style="flex: 1;">LAST: <span id="voiceCalled" style="color: #ffd700;">—</span></div>
+                    <div class="stat-box" style="flex: 1;">TIME: <span id="timerDisplay" style="color: #ffd700;">00:45</span></div>
+                </div>
+
+                <!-- Taken Indicator -->
+                <div class="taken-indicator">
+                    <span>❌ Cards taken: </span><span id="takenCardsList">None</span>
+                </div>
+
+                <!-- Auto Status -->
+                <div class="auto-status" id="autoStatus">⚡ AUTOMATIC OFF</div>
+
+                <!-- Winner Banner -->
+                <div class="winner-banner" id="winnerBanner">
+                    <h3 id="winnerMessage">🎉 WINNER! 🎉</h3>
+                </div>
+
+                <!-- Selection Area (Hidden after confirmation) -->
+                <div class="selection-area" id="selectionArea">
+                    <div class="selection-title">🎴 SELECT YOUR CARDS (1-300)</div>
+                    <div class="selection-subtitle">Click on cards to select/unselect (Max 2 cards) - 10 birr each</div>
+                    <div class="numbers-select-grid" id="numbersGrid"></div>
+                    <div class="selected-info" id="selectedInfo">Selected: 0/2 cards</div>
+                    <button class="confirm-btn" id="confirmBtn" onclick="confirmSelection()" disabled>✅ CONFIRM SELECTION</button>
+                </div>
+
+                <!-- Cards Container -->
+                <div class="cards-container" id="cardsContainer"></div>
+            </div>
+        </div>
+
+        <!-- SINGLE ROW CONTROL BAR -->
+        <div class="controls">
+            <button class="btn btn-leave" onclick="leaveGame()">🚪 LEAVE</button>
+            <button class="btn btn-reset" onclick="resetGame()">🔄 REFRESH</button>
+            <button class="btn btn-call" onclick="callNumber()">🎲 CALL</button>
+            <button class="btn btn-sound" onclick="toggleSound()">🔊 SOUND</button>
+            <button class="btn btn-sound" onclick="toggleVoice()">🗣️ VOICE</button>
+            <button class="btn btn-auto" onclick="toggleAuto()">🔄 AUTO</button>
+            <button class="btn btn-bingo" onclick="pressBingo()">🏆 BINGO</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // ============ WEB AUDIO API SOUND SYSTEM ============
+        let audioContext = null;
+        let soundEnabled = true;
+        let voiceEnabled = true;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playCallSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 880;
+                gain.gain.value = 0.3;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
+                osc.stop(audioContext.currentTime + 0.5);
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playMarkSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 440;
+                gain.gain.value = 0.2;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.2);
+                osc.stop(audioContext.currentTime + 0.2);
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playBingoSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.frequency.value = freq;
+                    gain.gain.value = 0.2;
+                    osc.start(audioContext.currentTime + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + i * 0.15 + 0.5);
+                    osc.stop(audioContext.currentTime + i * 0.15 + 0.5);
+                });
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playBuySound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 330;
+                gain.gain.value = 0.3;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.3);
+                osc.stop(audioContext.currentTime + 0.3);
+                setTimeout(() => {
+                    const osc2 = audioContext.createOscillator();
+                    const gain2 = audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioContext.destination);
+                    osc2.frequency.value = 440;
+                    gain2.gain.value = 0.2;
+                    osc2.start();
+                    gain2.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.2);
+                    osc2.stop(audioContext.currentTime + 0.2);
+                }, 100);
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playAutoSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 660;
+                gain.gain.value = 0.15;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.15);
+                osc.stop(audioContext.currentTime + 0.15);
+            } catch(e) { console.log('Sound error:', e); }
+        }
+
+        function playSound(soundId) {
+            if (soundId === 'soundCall') playCallSound();
+            else if (soundId === 'soundMark') playMarkSound();
+            else if (soundId === 'soundBingo') playBingoSound();
+            else if (soundId === 'soundBuy') playBuySound();
+            else if (soundId === 'soundAuto') playAutoSound();
+        }
+
+        function speakNumber(number) {
+            if (!voiceEnabled) return;
+            try {
+                let letter = '';
+                if (number >= 1 && number <= 15) letter = 'B';
+                else if (number >= 16 && number <= 30) letter = 'I';
+                else if (number >= 31 && number <= 45) letter = 'N';
+                else if (number >= 46 && number <= 60) letter = 'G';
+                else if (number >= 61 && number <= 75) letter = 'O';
+                const utterance = new SpeechSynthesisUtterance(`${letter} ${number}`);
+                utterance.rate = 0.9;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            } catch(e) {}
+        }
+
+        function speakWin(name) {
+            if (!voiceEnabled) return;
+            try {
+                const utterance = new SpeechSynthesisUtterance(`${name} won BINGO!`);
+                window.speechSynthesis.speak(utterance);
+            } catch(e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            showStatus(soundEnabled ? '🔊 Sound ON' : '🔇 Sound OFF');
+        }
+
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            showStatus(voiceEnabled ? '🗣️ Voice ON' : '🔇 Voice OFF');
+        }
+
+        document.body.addEventListener('click', function initAudioOnClick() {
+            initAudio();
+            document.body.removeEventListener('click', initAudioOnClick);
+        });
+
+        // ============ CONFIGURATION ============
+        const socket = io();
+        const GAME_ROOM_ID = 'TEST_GAME';
+        let playerName = '';
+        let myCards = [];
+        let myWallet = 0;
+        let selectedCardNumbers = [];
+        let cardCost = 10;
+        let calledNumbers = [];
+        let gameActive = false;
+        let autoMode = false;
+        let autoInterval = null;
+        let currentWinner = null;
+        let takenCards = [];
+        let hasConfirmed = false;
+        let isSpectator = false;
+
+        const token = localStorage.getItem('token');
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3001/api'
+            : '/api';
+
+        // ============ RENDER 75-NUMBER GRID (FULLY VISIBLE) ============
+        function renderNumberGrid75() {
+            const container = document.getElementById('miniNumberGrid');
+            if (!container) return;
+            container.innerHTML = '';
+            for (let row = 0; row < 15; row++) {
+                for (let col = 0; col < 5; col++) {
+                    let number;
+                    if (col === 0) number = row + 1;
+                    else if (col === 1) number = 16 + row;
+                    else if (col === 2) number = 31 + row;
+                    else if (col === 3) number = 46 + row;
+                    else number = 61 + row;
+                    const div = document.createElement('div');
+                    div.className = 'mini-num';
+                    if (calledNumbers.includes(number)) div.classList.add('called');
+                    div.textContent = number;
+                    container.appendChild(div);
+                }
+            }
+        }
+
+        function updateNumberGrid(number) {
+            const cells = document.querySelectorAll('.mini-num');
+            cells.forEach(cell => {
+                if (parseInt(cell.textContent) === number) {
+                    cell.classList.add('called');
+                }
+            });
+        }
+
+        // ============ RENDER PLAYER CARDS ============
+        function renderPlayerCards() {
+            const container = document.getElementById('cardsContainer');
+            if (!myCards || myCards.length === 0) {
+                container.innerHTML = '<div class="bingo-card" style="text-align:center; padding:30px;">Select cards above to start playing!</div>';
+                return;
+            }
+            
+            container.innerHTML = myCards.map((card, idx) => {
+                const markedArray = Array.isArray(card.marked) ? card.marked : [];
+                return `
+                    <div class="bingo-card">
+                        <div class="card-header">
+                            <span class="card-number">🎯 CARD #${card.id}</span>
+                        </div>
+                        <div class="card-letters">
+                            <div class="card-letter B">B</div>
+                            <div class="card-letter I">I</div>
+                            <div class="card-letter N">N</div>
+                            <div class="card-letter G">G</div>
+                            <div class="card-letter O">O</div>
+                        </div>
+                        <div class="card-grid">
+                            ${card.numbers.map(row => row.map(num => `
+                                <div class="grid-cell ${markedArray.includes(num) ? 'marked' : ''} ${num === '★' ? 'free' : ''}" 
+                                     onclick="markNumber(${idx}, ${num})">
+                                    ${num === '★' ? '★' : num}
+                                </div>
+                            `).join('')).join('')}
+                        </div>
+                        <div class="card-status">${card.won ? '🏆 WINNER!' : '● ACTIVE'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function markNumber(cardIdx, number) {
+            if (!gameActive || currentWinner) {
+                showStatus('Game not active!');
+                return;
+            }
+            if (number === '★') return;
+            if (!calledNumbers.includes(number)) {
+                showStatus(`⚠️ Number ${number} not called!`);
+                return;
+            }
+            const card = myCards[cardIdx];
+            if (!card || card.marked.includes(number)) return;
+            
+            card.marked.push(number);
+            updateMarkedInDatabase(card.id, card.marked);
+            renderPlayerCards();
+            playSound('soundMark');
+            checkWinOnCard(cardIdx);
+        }
+
+        async function updateMarkedInDatabase(cardId, markedNumbers) {
+            try {
+                await fetch(`${API_URL}/game-session/update-marked`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ cardId: cardId, markedNumbers: markedNumbers })
+                });
+            } catch (error) {
+                console.error('Error updating marked numbers:', error);
+            }
+        }
+
+        function checkWinOnCard(cardIdx) {
+            const card = myCards[cardIdx];
+            if (card.won) return false;
+            
+            for (let row = 0; row < 5; row++) {
+                let complete = true;
+                for (let col = 0; col < 5; col++) {
+                    const num = card.numbers[row][col];
+                    if (num !== '★' && !card.marked.includes(num)) { complete = false; break; }
+                }
+                if (complete) { declareWin(cardIdx, `Row ${row+1}`); return true; }
+            }
+            
+            for (let col = 0; col < 5; col++) {
+                let complete = true;
+                for (let row = 0; row < 5; row++) {
+                    const num = card.numbers[row][col];
+                    if (num !== '★' && !card.marked.includes(num)) { complete = false; break; }
+                }
+                if (complete) { declareWin(cardIdx, `Column ${['B','I','N','G','O'][col]}`); return true; }
+            }
+            
+            let diag1 = true, diag2 = true;
+            for (let i = 0; i < 5; i++) {
+                if (card.numbers[i][i] !== '★' && !card.marked.includes(card.numbers[i][i])) diag1 = false;
+                if (card.numbers[i][4-i] !== '★' && !card.marked.includes(card.numbers[i][4-i])) diag2 = false;
+            }
+            if (diag1) { declareWin(cardIdx, 'Main Diagonal'); return true; }
+            if (diag2) { declareWin(cardIdx, 'Anti-Diagonal'); return true; }
+            return false;
+        }
+
+        function declareWin(cardIdx, pattern) {
+            if (!gameActive || currentWinner) return;
+            const card = myCards[cardIdx];
+            if (card.won) return;
+            card.won = true;
+            currentWinner = playerName;
+            gameActive = false;
+            if (autoMode) stopAuto();
+            
+            fetch(`${API_URL}/game/save`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    card_numbers: card.numbers,
+                    marked_numbers: card.marked,
+                    score: 0,
+                    won: true,
+                    gameSessionId: GAME_ROOM_ID
+                })
+            }).catch(err => console.error('Error saving game:', err));
+            
+            socket.emit('player-bingo', {
+                gameId: GAME_ROOM_ID,
+                playerName: playerName,
+                cardId: card.id,
+                pattern: pattern
+            });
+            
+            renderPlayerCards();
+            playSound('soundBingo');
+            speakWin(playerName);
+        }
+
+        // ============ SOCKET EVENTS ============
+        socket.on('connect', () => {
+            console.log('✅ Socket connected!');
+            loadGameState();
+        });
+
+        socket.on('number-called', (data) => {
+            const { number, letter, calledNumbers: serverCalled } = data;
+            calledNumbers = serverCalled.map(c => c.number || c);
+            document.getElementById('voiceCalled').textContent = `${letter}-${number}`;
+            document.getElementById('calledCount').textContent = calledNumbers.length;
+            renderCalledList();
+            updateNumberGrid(number);
+            
+            if (isSpectator) return;
+            
+            for (let idx = 0; idx < myCards.length; idx++) {
+                const card = myCards[idx];
+                if (card.won) continue;
+                for (let row = 0; row < 5; row++) {
+                    for (let col = 0; col < 5; col++) {
+                        if (card.numbers[row][col] === number && !card.marked.includes(number)) {
+                            card.marked.push(number);
+                            updateMarkedInDatabase(card.id, card.marked);
+                            renderPlayerCards();
+                            playSound('soundMark');
+                            checkWinOnCard(idx);
+                        }
+                    }
+                }
+            }
+        });
+
+        socket.on('game-winner', (data) => {
+            const { winner, cardId, pattern } = data;
+            
+            const banner = document.getElementById('winnerBanner');
+            document.getElementById('winnerMessage').innerHTML = `🎉 ${winner} won with CARD #${cardId} (${pattern})! 🎉`;
+            banner.style.display = 'block';
+            gameActive = false;
+            if (autoMode) stopAuto();
+            playSound('soundBingo');
+            speakWin(winner);
+            
+            setTimeout(() => {
+                window.location.href = '/card-selection-test.html';
+            }, 5000);
+        });
+
+        socket.on('players-update', (data) => {
+            document.getElementById('playerCount').textContent = data.count;
+            document.getElementById('derashAmount').textContent = data.count * cardCost;
+        });
+
+        socket.on('timer-update', (data) => {
+            document.getElementById('timerDisplay').textContent = data.display;
+        });
+
+        socket.on('game-started', () => {
+            gameActive = true;
+            if (!autoMode) toggleAuto();
+        });
+
+        socket.on('waiting-for-players', (data) => {
+            console.log('Waiting for players:', data);
+        });
+
+        socket.on('reset-for-next-game', () => {
+            window.location.href = '/card-selection-test.html';
+        });
+
+        socket.on('game-active-error', (data) => {
+            alert(data.message);
+            window.location.href = '/card-selection-test.html';
+        });
+
+        // ============ LOAD GAME STATE ============
+        async function loadGameState() {
+            try {
+                const response = await fetch(`${API_URL}/game-session/state`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+                
+                console.log('Game state:', data);
+                
+                document.getElementById('playerCount').textContent = data.players || 0;
+                document.getElementById('calledCount').textContent = data.game?.called_numbers?.length || 0;
+                document.getElementById('derashAmount').textContent = (data.players || 0) * cardCost;
+                
+                takenCards = data.takenCards || [];
+                updateTakenCardsDisplay();
+                
+                if (data.myCards && data.myCards.length > 0) {
+                    hasConfirmed = true;
+                    isSpectator = false;
+                    myCards = data.myCards.map(card => ({
+                        id: card.card_number,
+                        numbers: JSON.parse(card.card_data),
+                        marked: JSON.parse(card.marked_numbers || '[]'),
+                        won: card.won || false
+                    }));
+                    renderPlayerCards();
+                    document.getElementById('selectionArea').style.display = 'none';
+                    joinGameRoom();
+                } else {
+                    isSpectator = true;
+                    document.getElementById('selectionArea').style.display = 'block';
+                    renderNumberGrid();
+                }
+                
+                if (data.game?.called_numbers) {
+                    calledNumbers = JSON.parse(data.game.called_numbers || '[]');
+                    renderCalledList();
+                    renderNumberGrid75();
+                }
+                
+                if (data.game?.status === 'active') {
+                    gameActive = true;
+                }
+                
+                const walletRes = await fetch(`${API_URL}/wallet/balance`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const walletData = await walletRes.json();
+                myWallet = walletData.balance;
+                
+            } catch (error) {
+                console.error('Error loading game state:', error);
+            }
+        }
+
+        async function joinGameRoom() {
+            try {
+                const userRes = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const user = await userRes.json();
+                playerName = user.username;
+                
+                socket.emit('join-game', {
+                    gameId: GAME_ROOM_ID,
+                    playerName: playerName,
+                    cards: myCards.map(card => ({
+                        id: card.id,
+                        numbers: card.numbers,
+                        marked: card.marked
+                    })),
+                    userId: user.id
+                });
+            } catch (error) {
+                console.error('Error joining game room:', error);
+            }
+        }
+
+        function updateTakenCardsDisplay() {
+            const container = document.getElementById('takenCardsList');
+            if (takenCards.length > 0) {
+                container.innerHTML = takenCards.map(c => `#${c}`).join(', ');
+            } else {
+                container.innerHTML = 'None';
+            }
+            renderNumberGrid();
+        }
+
+        function renderNumberGrid() {
+            const container = document.getElementById('numbersGrid');
+            if (!container) return;
+            container.innerHTML = '';
+            for (let i = 1; i <= 300; i++) {
+                const div = document.createElement('div');
+                div.className = 'select-card';
+                div.textContent = i;
+                if (takenCards.includes(i)) div.classList.add('taken');
+                if (selectedCardNumbers.includes(i)) div.classList.add('selected');
+                if (!takenCards.includes(i)) div.onclick = () => toggleSelectCard(i);
+                container.appendChild(div);
+            }
+            updateSelectedInfo();
+        }
+
+        function toggleSelectCard(number) {
+            if (takenCards.includes(number)) {
+                alert('Card already taken!');
+                return;
+            }
+            if (selectedCardNumbers.includes(number)) {
+                selectedCardNumbers = selectedCardNumbers.filter(n => n !== number);
+            } else if (selectedCardNumbers.length < 2) {
+                selectedCardNumbers.push(number);
+            } else {
+                alert('Maximum 2 cards!');
+                return;
+            }
+            renderNumberGrid();
+        }
+
+        function updateSelectedInfo() {
+            const infoDiv = document.getElementById('selectedInfo');
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (infoDiv) infoDiv.innerHTML = `Selected: ${selectedCardNumbers.length}/2 cards`;
+            if (confirmBtn) confirmBtn.disabled = selectedCardNumbers.length === 0;
+        }
+
+        async function confirmSelection() {
+            if (selectedCardNumbers.length === 0) {
+                alert('Please select at least 1 card!');
+                return;
+            }
+            
+            const totalCost = selectedCardNumbers.length * cardCost;
+            if (myWallet < totalCost) {
+                alert(`Insufficient balance! Need ${totalCost} birr`);
+                return;
+            }
+            
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.textContent = '⏳ PROCESSING...';
+            confirmBtn.disabled = true;
+            
+            let success = true;
+            for (const cardNumber of selectedCardNumbers) {
+                const cardData = generateCardData(cardNumber);
+                try {
+                    const response = await fetch(`${API_URL}/game-session/select-card`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ cardNumber: cardNumber, cardData: cardData })
+                    });
+                    if (!response.ok) {
+                        const error = await response.json();
+                        alert(error.message);
+                        success = false;
+                        break;
+                    }
+                } catch (error) {
+                    console.error('Error selecting card:', error);
+                    alert('Server error');
+                    success = false;
+                    break;
+                }
+            }
+            
+            if (success) {
+                playSound('soundBuy');
+                hasConfirmed = true;
+                document.getElementById('selectionArea').style.display = 'none';
+                await loadGameState();
+            } else {
+                confirmBtn.textContent = '✅ CONFIRM SELECTION';
+                confirmBtn.disabled = false;
+            }
+        }
+
+        function generateCardData(cardNumber) {
+            const ranges = [{min:1,max:15},{min:16,max:30},{min:31,max:45},{min:46,max:60},{min:61,max:75}];
+            const numbers = [[],[],[],[],[]];
+            for (let col = 0; col < 5; col++) {
+                const colNums = [];
+                while (colNums.length < 5) {
+                    const num = Math.floor(Math.random() * (ranges[col].max - ranges[col].min + 1)) + ranges[col].min;
+                    if (!colNums.includes(num)) colNums.push(num);
+                }
+                colNums.sort((a,b)=>a-b);
+                for (let row = 0; row < 5; row++) numbers[row][col] = colNums[row];
+            }
+            numbers[2][2] = '★';
+            return numbers;
+        }
+
+        function renderCalledList() {
+            const container = document.getElementById('calledList');
+            container.innerHTML = calledNumbers.slice(-30).map(n => {
+                const letter = getLetterForNumber(n);
+                return `<span class="called-badge">${letter}-${n}</span>`;
+            }).join('');
+        }
+
+        function getLetterForNumber(number) {
+            if (number >= 1 && number <= 15) return 'B';
+            if (number >= 16 && number <= 30) return 'I';
+            if (number >= 31 && number <= 45) return 'N';
+            if (number >= 46 && number <= 60) return 'G';
+            if (number >= 61 && number <= 75) return 'O';
+            return '';
+        }
+
+        function showStatus(msg) {
+            const statusDiv = document.getElementById('autoStatus');
+            if (statusDiv) {
+                statusDiv.innerHTML = msg;
+                setTimeout(() => { if (!autoMode) statusDiv.innerHTML = '⚡ AUTOMATIC OFF'; }, 2000);
+            }
+        }
+
+        function callNumber() {
+            if (isSpectator) {
+                showStatus('⚠️ Watching only!');
+                return;
+            }
+            if (!gameActive || currentWinner) { showStatus('Game not active!'); return; }
+            const available = [];
+            for (let i = 1; i <= 75; i++) if (!calledNumbers.includes(i)) available.push(i);
+            if (available.length === 0) { showStatus('Game Over!'); stopAuto(); return; }
+            const randomIndex = Math.floor(Math.random() * available.length);
+            const number = available[randomIndex];
+            const letter = getLetterForNumber(number);
+            socket.emit('call-number', { gameId: GAME_ROOM_ID, number: number, letter: letter });
+            playSound('soundCall');
+            speakNumber(number);
+        }
+
+        function pressBingo() {
+            if (isSpectator) {
+                showStatus('⚠️ Watching only!');
+                return;
+            }
+            if (!gameActive || currentWinner) { showStatus('No active game!'); return; }
+            for (let i = 0; i < myCards.length; i++) {
+                if (checkWinOnCard(i)) return;
+            }
+            alert('❌ No BINGO pattern!');
+        }
+
+        function toggleAuto() {
+            if (isSpectator) {
+                showStatus('⚠️ Watching only!');
+                return;
+            }
+            if (autoMode) { stopAuto(); }
+            else {
+                autoMode = true;
+                autoInterval = setInterval(() => { if (autoMode && gameActive && !currentWinner) callNumber(); }, 3000);
+                document.getElementById('autoStatus').innerHTML = '🟢 AUTOMATIC ACTIVE';
+                playSound('soundAuto');
+            }
+        }
+
+        function stopAuto() {
+            autoMode = false;
+            if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
+            document.getElementById('autoStatus').innerHTML = '⚡ AUTOMATIC OFF';
+        }
+
+        function resetGame() {
+            if (confirm('Reset game?')) location.reload();
+        }
+
+        function leaveGame() {
+            if (confirm('Leave game?')) window.location.href = '/dashboard.html';
+        }
+
+        // Initialize
+        loadGameState();
+        setInterval(() => {
+            if (!gameActive && !hasConfirmed) loadGameState();
+        }, 5000);
+    </script>
+</body>
+</html>

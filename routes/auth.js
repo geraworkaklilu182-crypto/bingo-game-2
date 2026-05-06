@@ -19,7 +19,7 @@ const executeQuery = async (db, query, params = []) => {
 };
 
 // Register
-router.post('/register', async (req, res) => {
+/*router.post('/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
         
@@ -58,6 +58,22 @@ router.post('/register', async (req, res) => {
             const result = await db.query('INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id', [username, email, hashedPassword]);
             userId = result.rows[0].id;
         }
+
+        // After inserting the user, add this:
+const userId = result.rows[0].id;
+
+// ✅ ADD THIS - Give free 10 birr to new user
+await db.query(
+    `INSERT INTO wallet (user_id, balance) VALUES ($1, $10)`,
+    [userId]
+);
+
+// Optional: Record the free bonus transaction
+await db.query(
+    `INSERT INTO transactions (user_id, type, amount, description)
+     VALUES ($1, 'bonus', $10, 'Welcome bonus - Free 10 birr for signing up')`,
+    [userId]
+);
         
         // Create token
         const token = jwt.sign(
@@ -67,7 +83,78 @@ router.post('/register', async (req, res) => {
         );
         
         res.status(201).json({
-            message: 'User created successfully',
+            message: 'User created successfully! You received 10 free birr.',
+            token,
+            user: { id: userId, username, email, role: 'user' }
+        });
+        
+    } catch (error) {
+        console.error('Register error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});*/
+
+// Register
+router.post('/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+        
+        const db = getDB();
+        
+        // Check if user exists
+        let existingUser;
+        if (typeof db.get === 'function') {
+            // SQLite mode
+            existingUser = await db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, email]);
+        } else {
+            // PostgreSQL mode
+            const result = await db.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
+            existingUser = result.rows[0];
+        }
+        
+        if (existingUser) {
+            return res.status(400).json({ message: 'Username or email already exists' });
+        }
+        
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Create user and get ID
+        let userId;
+        if (typeof db.run === 'function') {
+            // SQLite mode
+            const result = await db.run('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)', [username, email, hashedPassword]);
+            userId = result.lastID;
+        } else {
+            // PostgreSQL mode
+            const result = await db.query('INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id', [username, email, hashedPassword]);
+            userId = result.rows[0].id;
+        }
+        
+        // ✅ ADD THIS - Give free 10 birr to new user
+        if (typeof db.run === 'function') {
+            // SQLite mode
+            await db.run('INSERT INTO wallet (user_id, balance) VALUES (?, ?)', [userId, 10]);
+            await db.run('INSERT INTO transactions (user_id, type, amount, description) VALUES (?, ?, ?, ?)', [userId, 'bonus', 10, 'Welcome bonus - Free 10 birr for signing up']);
+        } else {
+            // PostgreSQL mode
+            await db.query('INSERT INTO wallet (user_id, balance) VALUES ($1, 10)', [userId]);
+            await db.query(`INSERT INTO transactions (user_id, type, amount, description) VALUES ($1, $2, $3, $4)`, [userId, 'bonus', 10, 'Welcome bonus - Free 10 birr for signing up']);
+        }
+        
+        // Create token
+        const token = jwt.sign(
+            { id: userId, username, role: 'user' },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        res.status(201).json({
+            message: 'User created successfully! You received 10 free birr.',
             token,
             user: { id: userId, username, email, role: 'user' }
         });
@@ -77,6 +164,8 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+    
 
 // Login
 router.post('/login', async (req, res) => {

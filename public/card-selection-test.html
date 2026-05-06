@@ -199,7 +199,7 @@
         <div class="header">
             <h1>🎯 DIL BINGO</h1>
             <p>Select your cards to join the game</p>
-            <div class="wallet-box">💰 Balance: <span id="walletBalance">10</span> birr</div>
+            <div class="wallet-box">💰 Balance: <span id="walletBalance">0</span> birr</div>
         </div>
 
         <div class="info-bar">
@@ -423,7 +423,8 @@
         localStorage.removeItem('hasJoinedGame');
         
         // Redirect to game with a cache-busting parameter
-        window.location.href = '/multiplayer-arena.html?t=' + Date.now();
+       // window.location.href = '/multiplayer-arena.html?t=' + Date.now();
+        window.location.href = '/multiplayer-arena-test.html?t=' + Date.now();
     } else {
         confirmBtn.textContent = '✅ CONFIRM & JOIN GAME';
         confirmBtn.disabled = false;

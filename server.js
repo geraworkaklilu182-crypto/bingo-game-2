@@ -15,8 +15,10 @@ const io = socketIo(server, {
         methods: ["GET", "POST"]
     }
 });
+// After creating io, attach it to app so routes can use it
+app.set('io', io);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
@@ -140,7 +142,7 @@ const startServer = async () => {
     }
 
     // Start game immediately
-    function startGameNow(gameId) {
+   /* function startGameNow(gameId) {
         console.log(`[GAME] startGameNow called for ${gameId}`);
         const room = gameRooms.get(gameId);
         if (!room) return;
@@ -152,7 +154,30 @@ const startServer = async () => {
             message: 'Game has started! Good luck everyone!',
             players: room.players.map(p => ({ name: p.playerName }))
         });
-    }
+    }*/ 
+
+        function startGameNow(gameId) {
+    console.log(`[GAME] Starting countdown for ${gameId}`);
+    const room = gameRooms.get(gameId);
+    if (!room) return;
+    
+    // Send 5-second countdown to all players
+    io.to(gameId).emit('start-countdown', { seconds: 5 });
+    
+    // Wait 5 seconds then start game
+    setTimeout(() => {
+        const currentRoom = gameRooms.get(gameId);
+        if (!currentRoom) return;
+        
+        currentRoom.gameActive = true;
+        currentRoom.status = 'active';
+        
+        io.to(gameId).emit('game-started', {
+            message: 'Game has started! Good luck!',
+            players: currentRoom.players.map(p => ({ name: p.playerName }))
+        });
+    }, 5000);
+}
 
     io.on('connection', (socket) => {
         console.log('Player connected:', socket.id);
@@ -165,6 +190,7 @@ const startServer = async () => {
                 console.log(`[JOIN] Creating new room for ${gameId}`);
                 gameRooms.set(gameId, {
                     players: [],
+                    spectators: [],  // ✅ ADD THIS
                     calledNumbers: [],
                     gameActive: false,
                     winner: null,
@@ -177,6 +203,31 @@ const startServer = async () => {
             }
             
             const room = gameRooms.get(gameId);
+
+            
+
+// Check if player was already in this game (reconnecting)
+const wasInGame = room.players.some(p => p.userId === userId || p.playerName === playerName);
+
+const isSpectator = !cards || cards.length === 0;
+if (room.gameActive && !wasInGame && !isSpectator) {
+    console.log(`[JOIN] Game ${gameId} already active. New player ${playerName} cannot join.`);
+    socket.emit('game-active-error', { 
+        message: 'Game already in progress. You can watch as spectator.' //Please wait for next game.' 
+    });
+    return;
+}
+if (isSpectator && !wasInGame && room.gameActive) {
+    // Allow spectators to join
+    if (!room.spectators) room.spectators = [];
+    room.spectators.push({
+        socketId: socket.id,
+        playerName: playerName,
+        userId: userId
+    });
+    socket.join(gameId);
+    return;
+}
             
             const existingPlayer = room.players.find(p => p.socketId === socket.id);
             if (!existingPlayer) {
@@ -203,6 +254,7 @@ const startServer = async () => {
             
             io.to(gameId).emit('players-update', {
                 players: room.players.map(p => ({ name: p.playerName, hasWon: p.hasWon, id: p.socketId })),
+                spectators: room.spectators?.length || 0,
                 count: room.players.length,
                 minPlayers: room.minPlayers,
                 canStart: room.players.length >= room.minPlayers
@@ -271,6 +323,25 @@ const startServer = async () => {
         io.to(gameId).emit('reset-for-next-game');
     }, 5000);
 });
+// new event for leaving game
+socket.on('leave-game', (data) => {
+    const { gameId, playerName } = data;
+    console.log(`${playerName} leaving game ${gameId}`);
+    
+    const room = gameRooms.get(gameId);
+    if (room) {
+        const playerIndex = room.players.findIndex(p => p.playerName === playerName);
+        if (playerIndex !== -1) {
+            room.players.splice(playerIndex, 1);
+            socket.leave(gameId);
+            
+            io.to(gameId).emit('player-left', {
+                playerName: playerName,
+                remainingPlayers: room.players.length
+            });
+        }
+    }
+});
         
         socket.on('disconnect', () => {
             console.log('Player disconnected:', socket.id);
@@ -284,6 +355,12 @@ const startServer = async () => {
                         minPlayers: room.minPlayers,
                         canStart: room.players.length >= room.minPlayers
                     });
+
+                    // Also remove from spectators
+                const spectatorIndex = room.spectators?.findIndex(s => s.socketId === socket.id);
+                if (spectatorIndex !== -1) {
+                room.spectators.splice(spectatorIndex, 1);
+                  }
                     
                     if (room.players.length === 0) {
                         if (gameTimers.has(gameId)) {

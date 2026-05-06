@@ -142,6 +142,30 @@
             font-size: 12px;
         }
 
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,215,0,0.2);
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 8px 20px;
+            background: transparent;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #ffd700;
+            border-bottom: 2px solid #ffd700;
+        }
+
         /* Transactions */
         .transactions {
             background: #0d0d0d;
@@ -166,10 +190,19 @@
             gap: 10px;
         }
 
-        .transaction-deposit { color: #48bb78; }
-        .transaction-withdraw { color: #f56565; }
-        .transaction-game_win { color: #48bb78; }
-        .transaction-game_loss { color: #f56565; }
+        .transaction-deposit, .transaction-game_win { color: #48bb78; }
+        .transaction-withdraw, .transaction-game_loss { color: #f56565; }
+        .transaction-pending { color: #ffd700; }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .status-pending { background: #ffd70033; color: #ffd700; }
+        .status-approved { background: #48bb7833; color: #48bb78; }
+        .status-rejected { background: #f5656533; color: #f56565; }
 
         /* Modal */
         .modal {
@@ -179,7 +212,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -190,35 +223,76 @@
             border-radius: 20px;
             padding: 30px;
             width: 90%;
-            max-width: 400px;
-            text-align: center;
+            max-width: 500px;
             border: 1px solid rgba(255,215,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-content h2 {
             color: #ffd700;
             margin-bottom: 15px;
+            text-align: center;
         }
 
         .modal-content p {
             color: #aaa;
             font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
-        .modal-content input {
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #ffd700;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%;
             padding: 12px;
-            margin: 20px 0;
             border: 1px solid rgba(255,215,0,0.3);
             border-radius: 10px;
             background: #1a1a1a;
             color: white;
-            font-size: 16px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group small {
+            display: block;
+            color: #666;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 5px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #ccc;
         }
 
         .modal-buttons {
             display: flex;
             gap: 10px;
+            margin-top: 20px;
         }
 
         .modal-buttons button {
@@ -242,78 +316,57 @@
 
         /* Message */
         .message {
-            padding: 12px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
             border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
+            z-index: 1001;
             display: none;
         }
 
         .message.success {
-            background: rgba(72,187,120,0.2);
-            color: #48bb78;
+            background: rgba(72,187,120,0.9);
+            color: white;
             display: block;
-            border: 1px solid #48bb78;
         }
 
         .message.error {
-            background: rgba(245,101,101,0.2);
-            color: #f56565;
+            background: rgba(245,101,101,0.9);
+            color: white;
             display: block;
-            border: 1px solid #f56565;
         }
 
-        /* Mobile Responsive */
+        /* Telebirr Info */
+        .telebirr-info {
+            background: linear-gradient(135deg, #1a1a3e, #0f0f2a);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+            text-align: center;
+        }
+
+        .telebirr-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+            margin: 10px 0;
+        }
+
+        /* Mobile */
         @media (max-width: 600px) {
-            body {
-                padding: 15px;
-            }
-
-            .page-header {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .title h1 {
-                font-size: 24px;
-            }
-
-            .title-icon {
-                font-size: 32px;
-            }
-
-            .balance-amount {
-                font-size: 42px;
-            }
-
-            .actions {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .action-card {
-                padding: 20px;
-            }
-
-            .action-icon {
-                font-size: 36px;
-            }
-
-            .transaction-item {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .back-btn {
-                width: 100%;
-                justify-content: center;
-            }
+            body { padding: 15px; }
+            .page-header { flex-direction: column; text-align: center; }
+            .title h1 { font-size: 24px; }
+            .balance-amount { font-size: 42px; }
+            .actions { grid-template-columns: 1fr; gap: 15px; }
+            .transaction-item { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="page-header">
             <div class="title">
                 <span class="title-icon">💰</span>
@@ -322,21 +375,19 @@
             <button class="back-btn" onclick="goToDashboard()">← Back to Dashboard</button>
         </div>
 
-        <!-- Balance Card -->
         <div class="balance-card">
             <div class="balance-label">💰 Your Balance</div>
             <div class="balance-amount" id="balance">0</div>
             <div style="margin-top: 15px; font-size: 12px; color: #666;">
-                Min deposit: 10 | Max deposit: 200
+                Min deposit: 10 | Max deposit: 10000 | Min withdrawal: 50
             </div>
         </div>
 
-        <!-- Actions -->
         <div class="actions">
             <div class="action-card" onclick="showDepositModal()">
                 <div class="action-icon">💰</div>
                 <div class="action-title">Deposit</div>
-                <div class="action-desc">Add money to your wallet (10-200 coins)</div>
+                <div class="action-desc">Add money to your wallet (Admin approval)</div>
             </div>
             <div class="action-card" onclick="showWithdrawModal()">
                 <div class="action-icon">💸</div>
@@ -345,21 +396,83 @@
             </div>
         </div>
 
-        <!-- Transactions -->
-        <div class="transactions">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('transactions')">📜 Transactions</button>
+            <button class="tab" onclick="showTab('deposits')">📥 My Deposits</button>
+            <button class="tab" onclick="showTab('withdrawals')">📤 My Withdrawals</button>
+        </div>
+
+        <div id="transactionsTab" class="transactions">
             <h3>📜 Recent Transactions</h3>
             <div id="transactionsList">Loading...</div>
+        </div>
+
+        <div id="depositsTab" class="transactions" style="display:none;">
+            <h3>📥 My Deposit Requests</h3>
+            <div id="depositsList">Loading...</div>
+        </div>
+
+        <div id="withdrawalsTab" class="transactions" style="display:none;">
+            <h3>📤 My Withdrawal Requests</h3>
+            <div id="withdrawalsList">Loading...</div>
         </div>
     </div>
 
     <!-- Deposit Modal -->
     <div id="depositModal" class="modal">
         <div class="modal-content">
-            <h2>💰 Deposit Coins</h2>
-            <p>Enter amount (10 - 200 coins)</p>
-            <input type="number" id="depositAmount" placeholder="Amount" min="10" max="200">
+            <h2>💰 Request Deposit</h2>
+            
+            <div class="telebirr-info">
+                <div>📱 Send Money to:</div>
+                <div class="telebirr-number" id="telebirrNumberDisplay">09XXXXXXXX</div>
+                <div style="font-size: 11px; color: #aaa;">DIL BINGO</div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 8px;">After sending, provide the details below</div>
+            </div>
+
+            <div class="form-group">
+                <label>💰 Amount (birr)</label>
+                <input type="number" id="depositAmount" placeholder="Enter amount" min="10" max="10000">
+                <small>Minimum 10 birr, Maximum 10000 birr</small>
+            </div>
+
+            <div class="form-group">
+                <label>📱 Your Telebirr Number</label>
+                <input type="text" id="telebirrNumber" placeholder="e.g., 09XXXXXXXX">
+                <small>The Telebirr number registered in your name</small>
+            </div>
+
+            <div class="form-group">
+                <label>🔄 Verification Method</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="verifyMethod" value="auto" checked onchange="toggleVerifyMethod()"> 
+                        🔄 Auto-Verify (Reference Number)
+                    </label>
+                    <label>
+                        <input type="radio" name="verifyMethod" value="manual" onchange="toggleVerifyMethod()"> 
+                        📷 Manual (Screenshot)
+                    </label>
+                </div>
+            </div>
+
+            <div id="autoVerifySection" class="form-group">
+                <label>🔢 Transaction Reference Number</label>
+                <input type="text" id="referenceNumber" placeholder="Enter transaction reference number">
+                <small>Found in your payment confirmation message</small>
+            </div>
+
+            <div id="manualSection" class="form-group" style="display:none;">
+                <label>🔢 Transaction Reference Number</label>
+                <input type="text" id="manualReferenceNumber" placeholder="Enter transaction reference number">
+                
+                <label style="margin-top: 10px;">📷 Payment Screenshot</label>
+                <input type="file" id="screenshot" accept="image/*">
+                <small>Upload screenshot of payment confirmation</small>
+            </div>
+
             <div class="modal-buttons">
-                <button class="confirm-btn" onclick="deposit()">Confirm</button>
+                <button class="confirm-btn" onclick="submitDepositRequest()">Submit Request</button>
                 <button class="cancel-btn" onclick="closeModal('depositModal')">Cancel</button>
             </div>
         </div>
@@ -368,21 +481,32 @@
     <!-- Withdraw Modal -->
     <div id="withdrawModal" class="modal">
         <div class="modal-content">
-            <h2>💸 Withdraw Coins</h2>
-            <p>Enter amount to withdraw</p>
-            <input type="number" id="withdrawAmount" placeholder="Amount" min="1">
+            <h2>💸 Request Withdrawal</h2>
+            <p>Enter amount to withdraw (Minimum 50 birr)</p>
+            
+            <div class="form-group">
+                <label>💰 Amount (birr)</label>
+                <input type="number" id="withdrawAmount" placeholder="Enter amount" min="50">
+            </div>
+
+            <div class="form-group">
+                <label>📱 Your Telebirr Number</label>
+                <input type="text" id="withdrawTelebirrNumber" placeholder="e.g., 09XXXXXXXX">
+                <small>We will send winnings to this number</small>
+            </div>
+
             <div class="modal-buttons">
-                <button class="confirm-btn" onclick="withdraw()">Confirm</button>
+                <button class="confirm-btn" onclick="submitWithdrawalRequest()">Submit Request</button>
                 <button class="cancel-btn" onclick="closeModal('withdrawModal')">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="message" style="position: fixed; top: 20px; right: 20px; z-index: 1001;"></div>
+    <div id="message"></div>
 
     <script>
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3000/api'
+            ? 'http://localhost:3001/api'
             : '/api';
         const token = localStorage.getItem('token');
 
@@ -390,12 +514,42 @@
             window.location.href = '/login.html';
         }
 
+        let currentTab = 'transactions';
+
         function showMessage(msg, type) {
             const messageDiv = document.getElementById('message');
             messageDiv.innerHTML = `<div class="message ${type}">${msg}</div>`;
             setTimeout(() => {
                 messageDiv.innerHTML = '';
-            }, 3000);
+            }, 5000);
+        }
+
+        function showTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('transactionsTab').style.display = tab === 'transactions' ? 'block' : 'none';
+            document.getElementById('depositsTab').style.display = tab === 'deposits' ? 'block' : 'none';
+            document.getElementById('withdrawalsTab').style.display = tab === 'withdrawals' ? 'block' : 'none';
+            
+            if (tab === 'deposits') loadMyDeposits();
+            if (tab === 'withdrawals') loadMyWithdrawals();
+        }
+
+        function toggleVerifyMethod() {
+            const method = document.querySelector('input[name="verifyMethod"]:checked').value;
+            const autoSection = document.getElementById('autoVerifySection');
+            const manualSection = document.getElementById('manualSection');
+            
+            if (method === 'auto') {
+                autoSection.style.display = 'block';
+                manualSection.style.display = 'none';
+            } else {
+                autoSection.style.display = 'none';
+                manualSection.style.display = 'block';
+            }
         }
 
         async function loadBalance() {
@@ -418,7 +572,7 @@
                 const transactions = await response.json();
 
                 const container = document.getElementById('transactionsList');
-                if (transactions.length === 0) {
+                if (!transactions.length) {
                     container.innerHTML = '<p style="color:#888;">No transactions yet</p>';
                     return;
                 }
@@ -435,11 +589,82 @@
             }
         }
 
+        async function loadMyDeposits() {
+            try {
+                const response = await fetch(`${API_URL}/payment/my-deposits`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const deposits = await response.json();
+
+                const container = document.getElementById('depositsList');
+                if (!deposits.length) {
+                    container.innerHTML = '<p style="color:#888;">No deposit requests yet</p>';
+                    return;
+                }
+
+                container.innerHTML = deposits.map(d => `
+                    <div class="transaction-item">
+                        <span>💰 ${d.amount} birr</span>
+                        <span class="status-${d.status} status-badge">${d.status.toUpperCase()}</span>
+                        <span style="font-size: 11px; color: #666;">${new Date(d.created_at).toLocaleString()}</span>
+                        ${d.approved_at ? `<span style="font-size: 11px; color: #48bb78;">Approved: ${new Date(d.approved_at).toLocaleString()}</span>` : ''}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading deposits:', error);
+            }
+        }
+
+        async function loadMyWithdrawals() {
+            try {
+                const response = await fetch(`${API_URL}/payment/my-withdrawals`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const withdrawals = await response.json();
+
+                const container = document.getElementById('withdrawalsList');
+                if (!withdrawals.length) {
+                    container.innerHTML = '<p style="color:#888;">No withdrawal requests yet</p>';
+                    return;
+                }
+
+                container.innerHTML = withdrawals.map(w => `
+                    <div class="transaction-item">
+                        <span>💸 ${w.amount} birr</span>
+                        <span class="status-${w.status} status-badge">${w.status.toUpperCase()}</span>
+                        <span style="font-size: 11px; color: #666;">${new Date(w.created_at).toLocaleString()}</span>
+                        ${w.completed_at ? `<span style="font-size: 11px; color: #48bb78;">Completed: ${new Date(w.completed_at).toLocaleString()}</span>` : ''}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading withdrawals:', error);
+            }
+        }
+
+        async function loadTelebirrNumber() {
+            try {
+                const response = await fetch(`${API_URL}/payment/telebirr-number`);
+                const data = await response.json();
+                document.getElementById('telebirrNumberDisplay').textContent = data.number;
+            } catch (error) {
+                console.error('Error loading Telebirr number:', error);
+            }
+        }
+
         function showDepositModal() {
+            document.getElementById('depositAmount').value = '';
+            document.getElementById('telebirrNumber').value = '';
+            document.getElementById('referenceNumber').value = '';
+            document.getElementById('manualReferenceNumber').value = '';
+            document.getElementById('screenshot').value = '';
+            document.querySelector('input[value="auto"]').checked = true;
+            toggleVerifyMethod();
             document.getElementById('depositModal').style.display = 'flex';
         }
 
         function showWithdrawModal() {
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('withdrawTelebirrNumber').value = '';
             document.getElementById('withdrawModal').style.display = 'flex';
         }
 
@@ -447,71 +672,161 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
-        async function deposit() {
+        async function submitDepositRequest() {
             const amount = parseInt(document.getElementById('depositAmount').value);
-
-            if (isNaN(amount) || amount < 10 || amount > 200) {
-                showMessage('Amount must be between 10 and 200 coins', 'error');
+            const telebirrNumber = document.getElementById('telebirrNumber').value.trim();
+            const method = document.querySelector('input[name="verifyMethod"]:checked').value;
+            
+            // Validation
+            if (isNaN(amount) || amount < 10 || amount > 10000) {
+                showMessage('Amount must be between 10 and 10000 birr', 'error');
                 return;
             }
 
+            if (!telebirrNumber || telebirrNumber.length < 10) {
+                showMessage('Please enter a valid Telebirr number', 'error');
+                return;
+            }
+
+            const confirmBtn = document.querySelector('#depositModal .confirm-btn');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = '⏳ Submitting...';
+            confirmBtn.disabled = true;
+
             try {
-                const response = await fetch(`${API_URL}/wallet/deposit`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ amount })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showMessage(data.message, 'success');
-                    closeModal('depositModal');
-                    document.getElementById('depositAmount').value = '';
-                    loadBalance();
-                    loadTransactions();
+                if (method === 'auto') {
+                    // Auto-verify using reference number
+                    const referenceNumber = document.getElementById('referenceNumber').value.trim();
+                    
+                    if (!referenceNumber) {
+                        showMessage('Transaction reference number is required for auto-verification', 'error');
+                        confirmBtn.textContent = originalText;
+                        confirmBtn.disabled = false;
+                        return;
+                    }
+                    
+                    const response = await fetch(`${API_URL}/payment/verify-deposit`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            amount: amount,
+                            paymentMethod: 'telebirr',
+                            referenceNumber: referenceNumber
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    showMessage(data.message, response.ok ? 'success' : 'error');
+                    
+                    if (response.ok) {
+                        closeModal('depositModal');
+                        loadBalance();
+                        loadTransactions();
+                    }
                 } else {
-                    showMessage(data.message, 'error');
+                    // Manual deposit with screenshot
+                    const referenceNumber = document.getElementById('manualReferenceNumber').value.trim();
+                    const screenshotFile = document.getElementById('screenshot').files[0];
+                    
+                    if (!referenceNumber) {
+                        showMessage('Transaction reference number is required', 'error');
+                        confirmBtn.textContent = originalText;
+                        confirmBtn.disabled = false;
+                        return;
+                    }
+                    
+                    if (!screenshotFile) {
+                        showMessage('Please upload screenshot of payment confirmation', 'error');
+                        confirmBtn.textContent = originalText;
+                        confirmBtn.disabled = false;
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('amount', amount);
+                    formData.append('telebirr_number', telebirrNumber);
+                    formData.append('screenshot', screenshotFile);
+                    
+                    const response = await fetch(`${API_URL}/payment/deposit-request`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showMessage(data.message, 'success');
+                        closeModal('depositModal');
+                        if (currentTab === 'deposits') loadMyDeposits();
+                    } else {
+                        showMessage(data.message || 'Failed to submit deposit request', 'error');
+                    }
                 }
             } catch (error) {
-                showMessage('Network error', 'error');
+                console.error('Deposit error:', error);
+                showMessage('Network error. Please try again.', 'error');
+            } finally {
+                confirmBtn.textContent = originalText;
+                confirmBtn.disabled = false;
             }
         }
 
-        async function withdraw() {
+        async function submitWithdrawalRequest() {
             const amount = parseInt(document.getElementById('withdrawAmount').value);
+            const telebirrNumber = document.getElementById('withdrawTelebirrNumber').value.trim();
 
-            if (isNaN(amount) || amount <= 0) {
-                showMessage('Please enter a valid amount', 'error');
+            if (isNaN(amount) || amount < 50) {
+                showMessage('Minimum withdrawal is 50 birr', 'error');
                 return;
             }
 
+            if (amount > 50000) {
+                showMessage('Maximum withdrawal is 50000 birr', 'error');
+                return;
+            }
+
+            if (!telebirrNumber || telebirrNumber.length < 10) {
+                showMessage('Please enter a valid Telebirr number', 'error');
+                return;
+            }
+
+            const confirmBtn = document.querySelector('#withdrawModal .confirm-btn');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = '⏳ Submitting...';
+            confirmBtn.disabled = true;
+
             try {
-                const response = await fetch(`${API_URL}/wallet/withdraw`, {
+                const response = await fetch(`${API_URL}/payment/withdrawal-request`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ amount })
+                    body: JSON.stringify({
+                        amount: amount,
+                        telebirr_number: telebirrNumber
+                    })
                 });
 
                 const data = await response.json();
 
-                if (response.ok) {
+                if (data.success) {
                     showMessage(data.message, 'success');
                     closeModal('withdrawModal');
-                    document.getElementById('withdrawAmount').value = '';
                     loadBalance();
-                    loadTransactions();
+                    if (currentTab === 'withdrawals') loadMyWithdrawals();
                 } else {
                     showMessage(data.message, 'error');
                 }
             } catch (error) {
                 showMessage('Network error', 'error');
+            } finally {
+                confirmBtn.textContent = originalText;
+                confirmBtn.disabled = false;
             }
         }
 
@@ -519,10 +834,11 @@
             window.location.href = '/dashboard.html';
         }
 
+        // Initialize
         loadBalance();
         loadTransactions();
+        loadTelebirrNumber();
 
-        // Close modal when clicking outside
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.style.display = 'none';

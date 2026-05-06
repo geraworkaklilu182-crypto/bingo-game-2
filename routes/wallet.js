@@ -25,10 +25,22 @@ const verifyToken = (req, res, next) => {
 router.get('/balance', verifyToken, async (req, res) => {
   try {
     const db = getDB();
-    const result = await db.query(
+    let result = await db.query(
       'SELECT balance FROM wallet WHERE user_id = $1',
       [req.userId]
     );
+
+     // Create wallet if doesn't exist
+    if (!result.rows[0]) {
+      await db.query(
+        'INSERT INTO wallet (user_id, balance) VALUES ($1, 10)',
+        [req.userId]
+      );
+      result = await db.query(
+        'SELECT balance FROM wallet WHERE user_id = $1',
+        [req.userId]
+      );
+    }
     
     res.json({ balance: result.rows[0]?.balance || 0 });
   } catch (error) {
@@ -38,7 +50,7 @@ router.get('/balance', verifyToken, async (req, res) => {
 });
 
 // Deposit money
-router.post('/deposit', verifyToken, async (req, res) => {
+/*router.post('/deposit', verifyToken, async (req, res) => {
   try {
     const { amount } = req.body;
     const db = getDB();
@@ -49,6 +61,20 @@ router.post('/deposit', verifyToken, async (req, res) => {
     
     if (amount < 10 || amount > 200) {
       return res.status(400).json({ message: 'Amount must be between 10 and 200' });
+    }
+
+    // Check if wallet exists, if not create it
+    const walletCheck = await db.query(
+      'SELECT balance FROM wallet WHERE user_id = $1',
+      [req.userId]
+    );
+    
+    if (!walletCheck.rows[0]) {
+      // Create wallet for user with initial 10 coins
+      await db.query(
+        'INSERT INTO wallet (user_id, balance) VALUES ($1, $10)',
+        [req.userId]
+      );
     }
     
     // Update wallet
@@ -73,12 +99,93 @@ router.post('/deposit', verifyToken, async (req, res) => {
     res.json({ 
       success: true, 
       message: `Successfully deposited ${amount} coins!`,
-      balance: result.rows[0].balance 
+      //balance: result.rows[0].balance 
+      balance: result.rows[0]?.balance || 0
     });
     
   } catch (error) {
     console.error('Deposit error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});*/
+
+// Request deposit (requires admin approval)
+/*router.post('/deposit', verifyToken, async (req, res) => {
+  try {
+    const { amount, referenceNumber, paymentMethod } = req.body;
+    const db = getDB();
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Invalid amount' });
+    }
+    
+    if (amount < 10 || amount > 10000) {
+      return res.status(400).json({ message: 'Amount must be between 10 and 10000' });
+    }
+    
+    if (!referenceNumber) {
+      return res.status(400).json({ message: 'Transaction reference number is required' });
+    }
+    
+    // Create pending deposit request (admin will approve)
+    const result = await db.query(
+      `INSERT INTO pending_deposits (user_id, amount, reference_number, payment_method, status) 
+       VALUES ($1, $2, $3, $4, 'pending') RETURNING id`,
+      [req.userId, amount, referenceNumber, paymentMethod || 'telebirr']
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Deposit request submitted. Admin will review and approve within 24 hours.',
+      requestId: result.rows[0].id
+    });
+    
+  } catch (error) {
+    console.error('Deposit request error:', error);
+    res.status(500).json({ message: 'Server error: ' + error.message });
+  }
+});*/
+
+
+
+// Request deposit (requires admin approval)
+router.post('/deposit', verifyToken, async (req, res) => {
+  try {
+    const { amount, referenceNumber, telebirrNumber, screenshotUrl } = req.body;
+    const db = getDB();
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Invalid amount' });
+    }
+    
+    if (amount < 10 || amount > 10000) {
+      return res.status(400).json({ message: 'Amount must be between 10 and 10000' });
+    }
+    
+    if (!referenceNumber) {
+      return res.status(400).json({ message: 'Transaction reference number is required' });
+    }
+    
+    if (!telebirrNumber) {
+      return res.status(400).json({ message: 'Telebirr number is required' });
+    }
+    
+    // Create pending deposit request
+    const result = await db.query(
+      `INSERT INTO pending_deposits (user_id, amount, reference_number, telebirr_number, screenshot_url, status) 
+       VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING id`,
+      [req.userId, amount, referenceNumber, telebirrNumber, screenshotUrl || null]
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Deposit request submitted. Admin will review and approve.',
+      requestId: result.rows[0].id
+    });
+    
+  } catch (error) {
+    console.error('Deposit request error:', error);
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 });
 

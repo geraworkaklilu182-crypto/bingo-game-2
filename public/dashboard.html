@@ -500,7 +500,9 @@
             </div>
             <div class="nav-menu">
                 <button class="nav-link active" onclick="window.location.href='/dashboard.html'">📊 Dashboard</button>
-                <button class="nav-link" onclick="window.location.href='/multiplayer-arena.html'">🎮 PLAY NOW</button>
+               <!-- <button class="nav-link" onclick="window.location.href='/multiplayer-arena.html'">🎮 PLAY NOW</button>-->
+                <button class="nav-link" onclick="window.location.href='/card-selection.html'">🎮 PLAY NOW</button>
+                <button class="nav-link" onclick="window.location.href='/card-selection-test.html'">🧪 TEST</button>
                 <button class="nav-link" onclick="window.location.href='/history.html'">📜 History</button>
                 <button class="nav-link" onclick="window.location.href='/profile.html'">👤 Profile</button>
                 <button id="adminNav" class="nav-link" style="display:none;" onclick="window.location.href='/admin.html'">👑 Admin</button>
@@ -519,7 +521,9 @@
                 <h1>Welcome back, <span id="username">Player</span>! 🎉</h1>
                 <p>Ready for an exciting Bingo experience? Play now and win big prizes!</p>
                 <button class="play-button" onclick="startGame()">🎮 PLAY NOW <span>→</span></button>
+                <button class="play-button" onclick="startTestGame()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">🧪 PLAY TEST <span>→</span></button>
             </div>
+            
             <div class="hero-image" id="heroImageContainer">
                 <img id="heroImage" src="" alt="Bingo Hero">
                 <div id="heroAdminOverlay" class="admin-overlay" style="display:none;">
@@ -530,13 +534,13 @@
         </div>
 
         <!-- Welcome Banner -->
-        <div class="welcome-banner">
+      <!--  <div class="welcome-banner">
             <h2>🎯 Ready to Play?</h2>
             <p>Click PLAY NOW to start your Bingo journey. Check your stats on your Profile page!</p>
-        </div>
+        </div>-->
 
         <!-- Quick Actions -->
-        <div class="actions-section">
+       <!-- <div class="actions-section">
             <div class="action-card" onclick="startGame()">
                 <div class="action-icon">🎮</div>
                 <div class="action-title">PLAY NOW</div>
@@ -552,10 +556,10 @@
                 <div class="action-title">My Profile</div>
                 <div class="action-desc">View your stats and settings</div>
             </div>
-        </div>
+        </div>-->
 
         <!-- Coming Soon Games -->
-        <div class="games-section">
+      <!--- <div class="games-section">
             <div class="games-title"><span>🎲</span> Coming Soon</div>
             <div class="games-grid" id="gamesGrid">
                 <div class="game-card" id="game1">
@@ -589,7 +593,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div>-->
     </div>
 
     <!-- Hero Image Modal -->
@@ -620,7 +624,7 @@
 
     <script>
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3000/api'
+            ? 'http://localhost:3001/api'
             : '/api';
         const token = localStorage.getItem('token');
         let currentGameId = null;
@@ -798,8 +802,15 @@
         }
         
         function startGame() {
-            window.location.href = '/multiplayer-arena.html';
+            window.location.href = '/card-selection.html';
         }
+        function startTestGame() {
+    window.location.href = '/card-selection-test.html';
+}
+
+      /*  function startGame() {
+    window.location.href = '/multiplayer-arena.html';  // ❌ WRONG - goes directly to game room
+}*/
         
         function logout() {
             localStorage.removeItem('token');
