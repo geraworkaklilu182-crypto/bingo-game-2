@@ -175,7 +175,7 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
 router.get('/telebirr-number', (req, res) => {
     res.json({ 
         number: '09XXXXXXXX', // REPLACE WITH YOUR ACTUAL TELEBIRR NUMBER
-        name: 'DIL BINGO',
+        name: 'DESTA BINGO',
         instructions: 'Send the exact amount to this TeleBirr number, then take a screenshot of the confirmation.'
     });
 });

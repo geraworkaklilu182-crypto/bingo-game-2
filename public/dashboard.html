@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>DIL BINGO - Dashboard</title>
+    <title>DESTA BINGO - Dashboard</title>
     <style>
         /* Same styles as before - keeping the dark theme */
         * {
@@ -20,7 +20,7 @@
         }
 
         .dashboard-container {
-            max-width: 1400px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
@@ -117,7 +117,7 @@
 
         .logout-btn {
             padding: 8px 18px;
-            background: rgba(220,53,69,0.8);
+            background: rgba(115, 124, 236, 0.623);
             color: white;
             border: none;
             border-radius: 30px;
@@ -168,7 +168,7 @@
             line-height: 1.6;
         }
 
-        .hero-image {
+       /* .hero-image {
             flex: 0.7;
             min-height: 350px;
             display: flex;
@@ -179,12 +179,12 @@
             background: #1a1a2e;
         }
 
-        .hero-image img {
+       /* .hero-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             min-height: 350px;
-        }
+        }*/
 
         .admin-overlay {
             position: absolute;
@@ -455,8 +455,10 @@
             color: white;
         }
 
-        @media (max-width: 900px) {
-            .hero-section {
+        
+
+       @media (max-width: 900px) {
+          /*  .hero-section {
                 flex-direction: column;
             }
             .hero-content {
@@ -467,7 +469,7 @@
             .hero-image {
                 flex: 1;
                 width: 100%;
-            }
+            }*/
             .actions-section {
                 grid-template-columns: 1fr;
             }
@@ -496,22 +498,22 @@
         <div class="main-header">
             <div class="logo">
                 <span class="logo-icon">🎯</span>
-                <span class="logo-text">DIL BINGO</span>
+                <span class="logo-text">DESTA BINGO</span>
             </div>
             <div class="nav-menu">
-                <button class="nav-link active" onclick="window.location.href='/dashboard.html'">📊 Dashboard</button>
+               <!-- <button class="nav-link active" onclick="window.location.href='/dashboard.html'"> Dashboard</button>-->
                <!-- <button class="nav-link" onclick="window.location.href='/multiplayer-arena.html'">🎮 PLAY NOW</button>-->
-                <button class="nav-link" onclick="window.location.href='/card-selection.html'">🎮 PLAY NOW</button>
-                <button class="nav-link" onclick="window.location.href='/card-selection-test.html'">🧪 TEST</button>
-                <button class="nav-link" onclick="window.location.href='/history.html'">📜 History</button>
+                <button class="nav-link" onclick="window.location.href='/card-selection.html'"> PLAY NOW</button>
+                <button class="nav-link" onclick="window.location.href='/card-selection-test.html'"> TEST</button>
+                <button class="nav-link" onclick="window.location.href='/history.html'"> History</button>
                 <button class="nav-link" onclick="window.location.href='/profile.html'">👤 Profile</button>
                 <button id="adminNav" class="nav-link" style="display:none;" onclick="window.location.href='/admin.html'">👑 Admin</button>
-                <button class="nav-link" onclick="window.location.href='/wallet.html'">💰 Wallet</button>
-                <button class="nav-link" onclick="window.location.href='/how-to-play.html'">📖 Rules</button>
+                <button class="nav-link" onclick="window.location.href='/wallet.html'"> Wallet</button>
+                <button class="nav-link" onclick="window.location.href='/how-to-play.html'"> Rules</button>
             </div>
             <div class="user-section">
                 <div class="user-avatar" id="userAvatar">G</div>
-                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
 
@@ -519,19 +521,19 @@
         <div class="hero-section">
             <div class="hero-content">
                 <h1>Welcome back, <span id="username">Player</span>! 🎉</h1>
-                <p>Ready for an exciting Bingo experience? Play now and win big prizes!</p>
+                <p> <strong> for an exciting Bingo experience? Play now and win big prizes!</strong></p>
                 <button class="play-button" onclick="startGame()">🎮 PLAY NOW <span>→</span></button>
                 <button class="play-button" onclick="startTestGame()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">🧪 PLAY TEST <span>→</span></button>
             </div>
             
-            <div class="hero-image" id="heroImageContainer">
+           <!-- <div class="hero-image" id="heroImageContainer">
                 <img id="heroImage" src="" alt="Bingo Hero">
                 <div id="heroAdminOverlay" class="admin-overlay" style="display:none;">
                     <button class="admin-btn" onclick="openHeroImageModal()">📷 Change Image</button>
                     <button class="admin-btn" onclick="resetHeroImage()">↺ Reset</button>
                 </div>
             </div>
-        </div>
+        </div>-->
 
         <!-- Welcome Banner -->
       <!--  <div class="welcome-banner">
@@ -593,11 +595,11 @@
                     </div>
                 </div>
             </div>
-        </div>-->
-    </div>
+        </div>
+    </div>-->
 
     <!-- Hero Image Modal -->
-    <div id="heroModal" class="modal">
+  <!-- <div id="heroModal" class="modal">
         <div class="modal-content">
             <h3>📷 Change Hero Image</h3>
             <p style="color:#aaa; font-size:12px;">Upload a new hero image (JPG, PNG, GIF)</p>
@@ -607,10 +609,10 @@
                 <button class="close-modal" onclick="closeHeroModal()">Cancel</button>
             </div>
         </div>
-    </div>
+    </div>-->
 
     <!-- Game Image Modal -->
-    <div id="gameModal" class="modal">
+   <!-- <div id="gameModal" class="modal">
         <div class="modal-content">
             <h3>📷 Change Game Image</h3>
             <p style="color:#aaa; font-size:12px;">Upload an image for this game</p>
@@ -620,7 +622,7 @@
                 <button class="close-modal" onclick="closeGameModal()">Cancel</button>
             </div>
         </div>
-    </div>
+    </div>-->
 
     <script>
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -635,7 +637,7 @@
         }
 
         // Load images from server (for ALL users)
-        async function loadImages() {
+       /* async function loadImages() {
             try {
                 const response = await fetch(`${API_URL}/uploads/all`);
                 const data = await response.json();
@@ -767,7 +769,7 @@
         function closeGameModal() {
             document.getElementById('gameModal').style.display = 'none';
             currentGameId = null;
-        }
+        }*/
 
         async function loadUserData() {
             try {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Select Your Cards - DIL BINGO</title>
+    <title>Select Your Cards - DESTA BINGO</title>
     <style>
         * {
             margin: 0;
@@ -197,7 +197,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 DIL BINGO</h1>
+            <h1>DESTA BINGO</h1>
             <p>Select your cards to join the game</p>
             <div class="wallet-box">💰 Balance: <span id="walletBalance">10</span> birr</div>
         </div>
@@ -218,7 +218,7 @@
         </div>
 
         <div class="selection-area">
-            <div class="selection-title">🎴 CHOOSE YOUR CARDS</div>
+            <div class="selection-title"> CHOOSE YOUR CARDS</div>
             <div class="selection-subtitle">Click on cards to select/unselect (Maximum 2 cards) - Each card costs <span id="costDisplay">10</span> birr</div>
             
             <div class="numbers-grid" id="numbersGrid"></div>
@@ -302,7 +302,7 @@
             const container = document.getElementById('numbersGrid');
             container.innerHTML = '';
             
-            for (let i = 1; i <= 300; i++) {
+            for (let i = 1; i <= 400; i++) {
                 const div = document.createElement('div');
                 div.className = 'select-card';
                 div.textContent = i;
